@@ -1,0 +1,36 @@
+{
+  "name": "party-rentals-frontend",
+  "version": "1.0.0",
+  "description": "Frontend para sistema de alquiler de inflables - GitHub Pages ready",
+  "main": "index.html",
+  "scripts": {
+    "dev": "live-server --port=3000",
+    "build": "npm run build:css && npm run build:js && npm run copy:assets",
+    "build:css": "postcss src/css/main.css -o dist/css/main.css",
+    "build:js": "esbuild src/js/*.js --bundle --outdir=dist/js --minify",
+    "copy:assets": "cp -r *.html favicon.svg dist/",
+    "deploy": "npm run build && gh-pages -d dist",
+    "lint": "eslint src/js/**/*.js",
+    "test": "jest"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "live-server": "^1.2.2",
+    "postcss": "^8.4.31",
+    "postcss-cli": "^10.1.0",
+    "autoprefixer": "^10.4.16",
+    "esbuild": "^0.19.5",
+    "gh-pages": "^6.0.0",
+    "eslint": "^8.52.0"
+  },
+  "keywords": [
+    "party-rentals",
+    "inflatables",
+    "frontend",
+    "github-pages",
+    "pwa"
+  ],
+  "author": "Oscar",
+  "license": "MIT",
+  "homepage": "https://tuusuario.github.io/party-rentals-frontend"
+}

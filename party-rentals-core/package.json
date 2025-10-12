@@ -1,0 +1,44 @@
+{
+  "name": "party-rentals-core",
+  "version": "1.0.0",
+  "description": "Core domain logic para alquiler de inflables - DDD + TDD",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:tdd": "jest --watch --verbose",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.5",
+    "@types/node": "^20.8.0",
+    "@types/uuid": "^9.0.5",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "eslint": "^8.49.0",
+    "jest": "^29.7.0",
+    "rimraf": "^5.0.5",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.2.0"
+  },
+  "keywords": [
+    "domain-driven-design",
+    "ddd",
+    "tdd", 
+    "clean-architecture",
+    "party-rentals",
+    "inflatables",
+    "typescript"
+  ],
+  "author": "Oscar",
+  "license": "MIT"
+}

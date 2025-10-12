@@ -1,0 +1,51 @@
+{
+  "name": "party-rentals-ecosystem",
+  "version": "1.0.0",
+  "description": "Sistema completo de alquiler de inflables con DDD + TDD + MCP + IA",
+  "scripts": {
+    "install:all": "npm run install:core && npm run install:api && npm run install:frontend && npm run install:mcp && npm run install:orchestrator",
+    "install:core": "cd party-rentals-core && npm install",
+    "install:api": "cd party-rentals-api && npm install", 
+    "install:frontend": "cd party-rentals-frontend && npm install",
+    "install:mcp": "cd party-rentals-mcp-server && npm install",
+    "install:orchestrator": "cd mcp-orchestrator && npm install",
+    "test:all": "npm run test:core && npm run test:api && npm run test:mcp",
+    "test:core": "cd party-rentals-core && npm test",
+    "test:api": "cd party-rentals-api && npm test",
+    "test:mcp": "cd party-rentals-mcp-server && npm test",
+    "test:watch": "npm run test:core -- --watch",
+    "dev:all": "concurrently \"npm run dev:api\" \"npm run dev:frontend\" \"npm run dev:mcp\"",
+    "dev:api": "cd party-rentals-api && npm run dev",
+    "dev:frontend": "cd party-rentals-frontend && npm run dev",
+    "dev:mcp": "cd party-rentals-mcp-server && npm run dev",
+    "build:all": "npm run build:core && npm run build:api && npm run build:frontend",
+    "build:core": "cd party-rentals-core && npm run build",
+    "build:api": "cd party-rentals-api && npm run build",
+    "build:frontend": "cd party-rentals-frontend && npm run build",
+    "deploy": "cd party-rentals-frontend && npm run deploy",
+    "lint:all": "npm run lint:core && npm run lint:api && npm run lint:mcp",
+    "lint:core": "cd party-rentals-core && npm run lint",
+    "lint:api": "cd party-rentals-api && npm run lint", 
+    "lint:mcp": "cd party-rentals-mcp-server && npm run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3"
+  },
+  "keywords": [
+    "party-rentals",
+    "inflatables", 
+    "ddd",
+    "tdd",
+    "clean-architecture",
+    "mcp",
+    "ai-integration",
+    "typescript"
+  ],
+  "author": "Oscar",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oscar/party-rentals-ecosystem.git"
+  }
+}

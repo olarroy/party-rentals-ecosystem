@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservas - FiestaInflables</title>
+    <meta name="description" content="Reserva tu castillo inflable online. Calendario en tiempo real con disponibilidad instantánea.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="src/css/main.css">
+    <link rel="stylesheet" href="src/css/booking.css">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="nav">
+                <div class="logo">
+                    <h1>🎈 FiestaInflables</h1>
+                    <p>Diversión garantizada</p>
+                </div>
+                <nav class="nav-menu">
+                    <a href="index.html" class="nav-link">Inicio</a>
+                    <a href="index.html#servicios" class="nav-link">Servicios</a>
+                    <a href="reservas.html" class="nav-link active">Reservar</a>
+                </nav>
+                <button class="mobile-menu-btn" aria-label="Menú móvil">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Breadcrumb -->
+    <section class="breadcrumb">
+        <div class="container">
+            <nav class="breadcrumb-nav">
+                <a href="index.html">Inicio</a>
+                <span>→</span>
+                <span>Reservas</span>
+            </nav>
+        </div>
+    </section>
+
+    <!-- Reservation Section -->
+    <section class="reservation">
+        <div class="container">
+            <div class="section-header">
+                <h1>Reserva tu castillo inflable</h1>
+                <p>Selecciona fecha y tipo de castillo para ver disponibilidad</p>
+            </div>
+
+            <div class="reservation-content">
+                <!-- Step Indicator -->
+                <div class="steps">
+                    <div class="step active" data-step="1">
+                        <span class="step-number">1</span>
+                        <span class="step-title">Seleccionar</span>
+                    </div>
+                    <div class="step" data-step="2">
+                        <span class="step-number">2</span>
+                        <span class="step-title">Confirmar</span>
+                    </div>
+                    <div class="step" data-step="3">
+                        <span class="step-number">3</span>
+                        <span class="step-title">Pagar</span>
+                    </div>
+                </div>
+
+                <!-- Step 1: Selection -->
+                <div class="step-content active" id="step-1">
+                    <div class="selection-grid">
+                        <!-- Inflatable Selection -->
+                        <div class="selection-card">
+                            <h3>Tipo de castillo</h3>
+                            <div class="inflatable-options">
+                                <div class="inflatable-option" data-size="LARGE">
+                                    <div class="option-icon">🏰</div>
+                                    <div class="option-info">
+                                        <h4>Castillo Grande</h4>
+                                        <p>10-15 niños • 6x6x4m</p>
+                                        <span class="option-price">€80/día</span>
+                                    </div>
+                                    <div class="option-check">
+                                        <input type="radio" name="inflatable" id="large" value="LARGE">
+                                        <label for="large"></label>
+                                    </div>
+                                </div>
+                                
+                                <div class="inflatable-option" data-size="SMALL">
+                                    <div class="option-icon">🎪</div>
+                                    <div class="option-info">
+                                        <h4>Castillo Pequeño</h4>
+                                        <p>5-8 niños • 4x4x3m</p>
+                                        <span class="option-price">€60/día</span>
+                                    </div>
+                                    <div class="option-check">
+                                        <input type="radio" name="inflatable" id="small" value="SMALL">
+                                        <label for="small"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Calendar -->
+                        <div class="selection-card">
+                            <h3>Fecha del evento</h3>
+                            <div class="calendar-container">
+                                <div class="calendar-header">
+                                    <button class="calendar-nav" id="prev-month">‹</button>
+                                    <h4 class="calendar-title" id="calendar-title">Octubre 2024</h4>
+                                    <button class="calendar-nav" id="next-month">›</button>
+                                </div>
+                                <div class="calendar-grid" id="calendar-grid">
+                                    <!-- Calendar will be generated by JavaScript -->
+                                </div>
+                                <div class="calendar-legend">
+                                    <div class="legend-item">
+                                        <span class="legend-color available"></span>
+                                        <span>Disponible</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-color booked"></span>
+                                        <span>Ocupado</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-color weekend"></span>
+                                        <span>Fin de semana (+20%)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Availability Info -->
+                    <div class="availability-info" id="availability-info" style="display: none;">
+                        <div class="availability-card">
+                            <div class="availability-header">
+                                <h4>Disponibilidad confirmada</h4>
+                                <span class="availability-status available">✓ Disponible</span>
+                            </div>
+                            <div class="availability-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">Castillo:</span>
+                                    <span class="detail-value" id="selected-inflatable">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Fecha:</span>
+                                    <span class="detail-value" id="selected-date">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Precio:</span>
+                                    <span class="detail-value" id="selected-price">-</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-large" id="continue-btn" disabled>
+                                Continuar con la reserva
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div class="loading-state" id="loading-state" style="display: none;">
+                        <div class="loader"></div>
+                        <p>Verificando disponibilidad...</p>
+                    </div>
+
+                    <!-- Error State -->
+                    <div class="error-state" id="error-state" style="display: none;">
+                        <div class="error-icon">⚠️</div>
+                        <h4>Error al verificar disponibilidad</h4>
+                        <p id="error-message">Ha ocurrido un error. Por favor, inténtalo de nuevo.</p>
+                        <button class="btn btn-secondary" id="retry-btn">Reintentar</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Customer Info (Hidden initially) -->
+                <div class="step-content" id="step-2" style="display: none;">
+                    <div class="customer-form">
+                        <h3>Información de contacto</h3>
+                        <form id="customer-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="fullName">Nombre completo *</label>
+                                    <input type="text" id="fullName" name="fullName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">Email *</label>
+                                    <input type="email" id="email" name="email" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="phone">Teléfono *</label>
+                                    <input type="tel" id="phone" name="phone" required>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="address">Dirección del evento *</label>
+                                    <textarea id="address" name="address" rows="3" required placeholder="Calle, número, ciudad, código postal"></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="additionalInfo">Información adicional</label>
+                                    <textarea id="additionalInfo" name="additionalInfo" rows="2" placeholder="Instrucciones especiales, acceso, etc."></textarea>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" id="back-btn">Volver</button>
+                                <button type="submit" class="btn btn-primary btn-large">Confirmar reserva</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Step 3: Confirmation (Hidden initially) -->
+                <div class="step-content" id="step-3" style="display: none;">
+                    <div class="confirmation-card">
+                        <div class="confirmation-icon">✅</div>
+                        <h3>¡Reserva confirmada!</h3>
+                        <p>Hemos recibido tu reserva. Te enviaremos un email de confirmación en breve.</p>
+                        
+                        <div class="booking-summary">
+                            <h4>Resumen de la reserva</h4>
+                            <div class="summary-details" id="booking-summary">
+                                <!-- Will be filled by JavaScript -->
+                            </div>
+                        </div>
+
+                        <div class="next-steps">
+                            <h4>Próximos pasos</h4>
+                            <ul>
+                                <li>Recibirás un email con los detalles de la reserva</li>
+                                <li>Nos pondremos en contacto 24h antes del evento</li>
+                                <li>Llega el equipo de montaje 1 hora antes</li>
+                            </ul>
+                        </div>
+
+                        <button class="btn btn-primary btn-large" onclick="window.location.href='index.html'">
+                            Volver al inicio
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>🎈 FiestaInflables</h3>
+                    <p>Hacemos que cada fiesta sea especial</p>
+                </div>
+                <div class="footer-contact">
+                    <h4>Contacto</h4>
+                    <p>📧 info@fiestainflables.com</p>
+                    <p>📱 +34 123 456 789</p>
+                    <p>📍 Madrid, España</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 FiestaInflables. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="src/js/config.js"></script>
+    <script src="src/js/main.js"></script>
+    <script src="src/js/booking.js"></script>
+</body>
+</html>
