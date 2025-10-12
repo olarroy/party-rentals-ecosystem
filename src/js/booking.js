@@ -1,7 +1,10 @@
 /**
  * PARTY RENTALS - BOOKING SYSTEM
- * Sistema de calendario interactivo y gestión de reservas
+ * Sistema de calendario interactivo y gestión de reservas con Supabase
  */
+
+// Importar servicio de Supabase
+import supabaseService from './supabase.js';
 
 class BookingSystem {
   constructor() {
@@ -9,21 +12,8 @@ class BookingSystem {
     this.selectedDate = null;
     this.selectedInflatable = 'large';
     this.availabilityData = new Map();
+    this.inflatables = new Map(); // Cache de inflables desde la base de datos
     this.isLoading = false;
-    
-    // Precios base
-    this.pricing = {
-      large: {
-        weekday: 150,
-        weekend: 200,
-        holiday: 250
-      },
-      small: {
-        weekday: 100,
-        weekend: 130,
-        holiday: 160
-      }
-    };
     
     // Días festivos (ejemplo)
     this.holidays = new Set([
@@ -32,6 +22,48 @@ class BookingSystem {
     ]);
     
     this.init();
+  }
+
+  async init() {
+    try {
+      this.showLoading(true);
+      
+      // Cargar inflables desde la base de datos
+      await this.loadInflatables();
+      
+      // Inicializar eventos y calendario
+      this.bindEvents();
+      this.renderCalendar();
+      await this.loadAvailabilityData();
+      this.updatePricing();
+      
+      console.log('✅ Sistema de reservas inicializado con Supabase');
+    } catch (error) {
+      console.error('❌ Error inicializando sistema:', error);
+      this.showError('Error conectando con la base de datos. Por favor, recarga la página.');
+    } finally {
+      this.showLoading(false);
+    }
+  }
+
+  // Cargar inflables desde Supabase
+  async loadInflatables() {
+    try {
+      const inflatables = await supabaseService.getInflatables();
+      
+      // Almacenar en cache por tamaño
+      inflatables.forEach(inflatable => {
+        if (!this.inflatables.has(inflatable.size)) {
+          this.inflatables.set(inflatable.size, []);
+        }
+        this.inflatables.get(inflatable.size).push(inflatable);
+      });
+      
+      console.log('✅ Inflables cargados:', this.inflatables);
+    } catch (error) {
+      console.error('❌ Error cargando inflables:', error);
+      throw error;
+    }
   }
 
   init() {
@@ -279,7 +311,7 @@ class BookingSystem {
     `;
   }
 
-  updatePricing() {
+  async updatePricing() {
     const container = document.getElementById('pricing-info');
     if (!container || !this.selectedDate) {
       container?.style.display = 'none';
@@ -288,62 +320,103 @@ class BookingSystem {
 
     container.style.display = 'block';
     
-    const dayType = this.getDayType(this.selectedDate);
-    const basePrice = this.pricing[this.selectedInflatable][dayType];
-    const setupFee = 25;
-    const cleaningFee = 15;
-    const total = basePrice + setupFee + cleaningFee;
-    
-    container.innerHTML = `
-      <h3>Resumen de Precios</h3>
-      <div class="pricing-breakdown">
-        <div class="pricing-item">
-          <span>Alquiler inflable (${dayType}):</span>
-          <span class="price-amount">$${basePrice}</span>
+    try {
+      // Obtener inflables disponibles para la fecha y tamaño seleccionado
+      const dateStr = this.formatDate(this.selectedDate);
+      const availability = await supabaseService.checkAvailability(this.selectedInflatable, dateStr);
+      
+      if (!availability.length || !availability.some(item => item.is_available)) {
+        container.innerHTML = '<p class="error-message">No hay inflables disponibles para esta fecha</p>';
+        return;
+      }
+      
+      // Obtener el primer inflable disponible
+      const availableInflatable = availability.find(item => item.is_available);
+      const inflatable = await supabaseService.getInflatableById(availableInflatable.inflatable_id);
+      
+      if (!inflatable) {
+        container.innerHTML = '<p class="error-message">Error obteniendo información de precios</p>';
+        return;
+      }
+      
+      // Calcular precios usando la función del servicio
+      const hours = parseInt(document.getElementById('rental-hours')?.value) || 6;
+      const pricing = supabaseService.calculateRentalPrice(inflatable, dateStr, hours);
+      
+      const dayType = this.getDayType(this.selectedDate);
+      const basePrice = pricing.basePrice;
+      const setupFee = pricing.setupFee;
+      const cleaningFee = pricing.cleaningFee;
+      const total = pricing.totalPrice;
+      
+      container.innerHTML = `
+        <h3>Resumen de Precios</h3>
+        <div class="pricing-breakdown">
+          <div class="pricing-item">
+            <span>Alquiler inflable (${dayType}):</span>
+            <span class="price-amount">$${basePrice.toFixed(2)}</span>
+          </div>
+          <div class="pricing-item">
+            <span>Instalación y setup:</span>
+            <span class="price-amount">$${setupFee.toFixed(2)}</span>
+          </div>
+          <div class="pricing-item">
+            <span>Limpieza:</span>
+            <span class="price-amount">$${cleaningFee.toFixed(2)}</span>
+          </div>
+          <div class="pricing-item total">
+            <span>Total:</span>
+            <span class="price-amount">$${total.toFixed(2)}</span>
+          </div>
         </div>
-        <div class="pricing-item">
-          <span>Instalación y setup:</span>
-          <span class="price-amount">$${setupFee}</span>
-        </div>
-        <div class="pricing-item">
-          <span>Limpieza:</span>
-          <span class="price-amount">$${cleaningFee}</span>
-        </div>
-        <div class="pricing-item total">
-          <span>Total:</span>
-          <span class="price-amount">$${total}</span>
-        </div>
-      </div>
-    `;
+      `;
+    } catch (error) {
+      console.error('❌ Error actualizando precios:', error);
+      container.innerHTML = '<p class="error-message">Error obteniendo precios</p>';
+    }
   }
 
   async loadAvailabilityData() {
     this.isLoading = true;
-    this.showLoading();
+    this.showLoading(true);
     
     try {
-      // Simular llamada a API
-      await this.delay(500);
-      
-      // Generar datos de disponibilidad simulados
+      // Obtener rango de fechas del mes actual
       const startDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1);
       const endDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0);
       
+      // Obtener reservas existentes del mes
+      const rentals = await supabaseService.getRentalsInRange(
+        this.formatDate(startDate),
+        this.formatDate(endDate)
+      );
+      
+      // Limpiar datos de disponibilidad
+      this.availabilityData.clear();
+      
+      // Verificar disponibilidad día por día
       for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
         const dateStr = this.formatDate(d);
         
-        // Simular disponibilidad aleatoria
+        // Verificar disponibilidad para cada tamaño
+        const [largeAvailability, smallAvailability] = await Promise.all([
+          supabaseService.checkAvailability('large', dateStr),
+          supabaseService.checkAvailability('small', dateStr)
+        ]);
+        
         const availability = {
-          large: Math.random() > 0.3 ? 'available' : 'busy',
-          small: Math.random() > 0.2 ? 'available' : 'busy'
+          large: largeAvailability.some(item => item.is_available) ? 'available' : 'busy',
+          small: smallAvailability.some(item => item.is_available) ? 'available' : 'busy'
         };
         
         this.availabilityData.set(dateStr, availability);
       }
       
       this.renderCalendar();
+      console.log('✅ Disponibilidad cargada desde Supabase');
     } catch (error) {
-      console.error('Error loading availability:', error);
+      console.error('❌ Error cargando disponibilidad:', error);
+      this.showError('Error verificando disponibilidad. Intentando de nuevo...');
     } finally {
       this.isLoading = false;
       this.hideLoading();
@@ -357,44 +430,81 @@ class BookingSystem {
       return;
     }
     
-    this.showLoading();
+    this.showLoading(true, 'Procesando reserva...');
     
     try {
       const formData = new FormData(event.target);
-      const bookingData = {
-        date: this.formatDate(this.selectedDate),
-        inflatable: this.selectedInflatable,
-        customer: {
-          name: formData.get('customer-name'),
-          email: formData.get('customer-email'),
-          phone: formData.get('customer-phone'),
-          address: formData.get('customer-address')
-        },
-        event: {
-          type: formData.get('event-type'),
-          guests: parseInt(formData.get('guest-count')),
-          hours: parseInt(formData.get('rental-hours')),
-          notes: formData.get('special-requests')
-        },
-        pricing: this.calculateTotalPrice()
-      };
       
-      // Simular envío a API
-      await this.delay(1000);
-      const result = await this.submitBooking(bookingData);
-      
-      if (result.success) {
-        this.showSuccessMessage(result.bookingId);
-        this.resetForm();
-      } else {
-        throw new Error(result.message);
+      // Validar fecha seleccionada
+      if (!this.selectedDate) {
+        throw new Error('Por favor selecciona una fecha');
       }
       
+      // Validar disponibilidad una vez más antes de proceder
+      const dateStr = this.formatDate(this.selectedDate);
+      const availability = await supabaseService.checkAvailability(this.selectedInflatable, dateStr);
+      
+      if (!availability.some(item => item.is_available)) {
+        throw new Error('Lo sentimos, la fecha seleccionada ya no está disponible');
+      }
+      
+      // Obtener el inflable específico
+      const availableInflatable = availability.find(item => item.is_available);
+      const inflatable = await supabaseService.getInflatableById(availableInflatable.inflatable_id);
+      
+      if (!inflatable) {
+        throw new Error('Error obteniendo información del inflable');
+      }
+      
+      // Crear o actualizar cliente
+      const customerData = {
+        name: formData.get('customer-name'),
+        email: formData.get('customer-email'),
+        phone: formData.get('customer-phone'),
+        address: formData.get('customer-address')
+      };
+      
+      const customer = await supabaseService.upsertCustomer(customerData);
+      
+      // Calcular precios
+      const hours = parseInt(formData.get('rental-hours')) || 6;
+      const pricing = supabaseService.calculateRentalPrice(inflatable, dateStr, hours);
+      
+      // Preparar datos de la reserva
+      const rentalData = {
+        customer_id: customer.id,
+        inflatable_id: inflatable.id,
+        rental_date: dateStr,
+        rental_hours: hours,
+        guest_count: parseInt(formData.get('guest-count')),
+        event_type: formData.get('event-type'),
+        setup_address: customerData.address,
+        special_requests: formData.get('special-requests'),
+        base_price: pricing.basePrice,
+        setup_fee: pricing.setupFee,
+        cleaning_fee: pricing.cleaningFee,
+        total_price: pricing.totalPrice,
+        status: 'pending',
+        payment_status: 'pending'
+      };
+      
+      // Crear la reserva en Supabase
+      const rental = await supabaseService.createRental(rentalData);
+      
+      console.log('✅ Reserva creada exitosamente:', rental.booking_id);
+      
+      // Mostrar mensaje de éxito
+      this.showSuccessMessage(rental.booking_id, rental.total_price);
+      
+      // Limpiar formulario y recargar disponibilidad
+      this.resetForm();
+      await this.loadAvailabilityData();
+      
     } catch (error) {
-      console.error('Booking error:', error);
-      this.showError('Error al procesar la reserva. Por favor intente nuevamente.');
+      console.error('❌ Error en reserva:', error);
+      this.showError(error.message || 'Error al procesar la reserva. Por favor intente nuevamente.');
     } finally {
-      this.hideLoading();
+      this.showLoading(false);
     }
   }
 
@@ -518,16 +628,25 @@ class BookingSystem {
     }
   }
 
-  showSuccessMessage(bookingId) {
+  showSuccessMessage(bookingId, totalPrice = null) {
     const container = document.getElementById('booking-form-section');
+    const priceInfo = totalPrice ? `<p><strong>Total:</strong> $${totalPrice.toFixed(2)}</p>` : '';
+    
     container.innerHTML = `
       <div class="success-message">
+        <div class="success-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
         <h3>¡Reserva Confirmada!</h3>
-        <p>Su reserva ha sido creada exitosamente.</p>
-        <p><strong>ID de Reserva:</strong> ${bookingId}</p>
-        <p>Recibirá un email de confirmación en breve.</p>
-        <button class="btn btn-white mt-lg" onclick="location.reload()">
-          Nueva Reserva
+        <p>Su reserva ha sido creada exitosamente en nuestra base de datos.</p>
+        <div class="booking-details">
+          <p><strong>ID de Reserva:</strong> ${bookingId}</p>
+          ${priceInfo}
+          <p><strong>Estado:</strong> Pendiente de confirmación</p>
+        </div>
+        <p class="success-note">Nos pondremos en contacto con usted para confirmar los detalles de instalación.</p>
+        <button class="btn btn-primary mt-lg" onclick="location.reload()">
+          <i class="fas fa-plus"></i> Nueva Reserva
         </button>
       </div>
     `;
@@ -632,8 +751,38 @@ class BookingSystem {
   }
 
   showError(message) {
-    // Implement error display
-    alert(message); // Temporary - replace with better UI
+    // Create a better error display
+    const errorDiv = document.createElement('div');
+    errorDiv.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #dc3545;
+      color: white;
+      padding: 1rem;
+      border-radius: 4px;
+      z-index: 10000;
+      max-width: 300px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    `;
+    errorDiv.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>Error:</strong>
+      </div>
+      <p style="margin: 0.5rem 0;">${message}</p>
+      <button onclick="this.parentElement.remove()" 
+              style="position: absolute; top: 5px; right: 10px; background: none; border: none; color: white; font-size: 1.2em; cursor: pointer;">&times;</button>
+    `;
+    
+    document.body.appendChild(errorDiv);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (errorDiv.parentElement) {
+        errorDiv.remove();
+      }
+    }, 5000);
   }
 
   resetForm() {
