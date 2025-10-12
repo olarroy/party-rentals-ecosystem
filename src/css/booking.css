@@ -76,6 +76,167 @@
   box-shadow: var(--shadow-md);
 }
 
+/* Multi-select inflatable styles */
+.selector-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--gray-600);
+  margin: 0 0 var(--spacing-sm) 0;
+  font-weight: 400;
+}
+
+.inflatable-options {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.inflatable-btn.multi-select {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md) var(--spacing-lg);
+  flex-direction: column;
+  text-align: center;
+  min-width: 140px;
+}
+
+.selection-icon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 16px;
+  color: var(--gray-400);
+}
+
+.inflatable-btn.multi-select.active .selection-icon {
+  color: white;
+}
+
+.price-hint {
+  font-size: var(--font-size-xs);
+  opacity: 0.8;
+  margin-top: var(--spacing-xs);
+}
+
+.selection-summary {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--gray-50);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--gray-200);
+}
+
+.selected-count {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--primary-color);
+}
+
+/* Pricing enhancements for multiple inflatables */
+.pricing-item.discount {
+  background: linear-gradient(90deg, rgba(22, 163, 74, 0.1), transparent);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  margin: var(--spacing-xs) 0;
+}
+
+.discount-amount {
+  color: var(--success-color) !important;
+  font-weight: 600;
+}
+
+.multi-rental-badge {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  text-align: center;
+  font-weight: 600;
+  margin-top: var(--spacing-md);
+  box-shadow: var(--shadow-md);
+}
+
+.multi-rental-badge i {
+  margin-right: var(--spacing-xs);
+  animation: sparkle 2s infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.multi-selection-note {
+  color: var(--success-color);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-sm) !important;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: rgba(22, 163, 74, 0.1);
+  border-radius: var(--border-radius-sm);
+  border-left: 3px solid var(--success-color);
+}
+
+/* Success message styles */
+.success-message {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  padding: var(--spacing-2xl);
+  border-radius: var(--border-radius-xl);
+  text-align: center;
+  box-shadow: var(--shadow-2xl);
+  margin: var(--spacing-xl) 0;
+}
+
+.success-icon {
+  font-size: 4rem;
+  margin-bottom: var(--spacing-lg);
+  animation: successPulse 2s infinite;
+}
+
+.success-message h3 {
+  color: white;
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-2xl);
+}
+
+.booking-details {
+  background: rgba(255, 255, 255, 0.2);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
+  margin: var(--spacing-lg) 0;
+  backdrop-filter: blur(10px);
+}
+
+.booking-details p {
+  margin: var(--spacing-sm) 0;
+  font-size: var(--font-size-lg);
+}
+
+.success-note {
+  font-size: var(--font-size-md);
+  opacity: 0.9;
+  margin: var(--spacing-lg) 0;
+}
+
+.success-message .btn {
+  background: white;
+  color: var(--success-color);
+  border: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.success-message .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+@keyframes successPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
 /* Calendar Grid */
 .calendar {
   width: 100%;

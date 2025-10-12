@@ -9,7 +9,7 @@ class BookingCalendar {
   constructor() {
     this.currentDate = new Date();
     this.selectedDate = null;
-    this.selectedInflatable = 'large';
+    this.selectedInflatables = new Set(['large']); // Cambio a Set para múltiples selecciones
     this.availabilityData = new Map();
     
     // Datos de inflables
@@ -111,34 +111,82 @@ class BookingCalendar {
   }
 
   selectInflatable(type) {
-    console.log(`🎈 Cambiando a inflable: ${type}`);
+    console.log(`🎈 Toggle inflable: ${type}`);
     
     if (!type || !this.inflatables[type]) {
       console.error('❌ Tipo de inflable inválido:', type);
       return;
     }
 
-    this.selectedInflatable = type;
+    // Toggle selección múltiple
+    if (this.selectedInflatables.has(type)) {
+      // Si ya está seleccionado, lo quitamos (solo si hay más de uno)
+      if (this.selectedInflatables.size > 1) {
+        this.selectedInflatables.delete(type);
+        console.log(`➖ Quitado: ${type}`);
+      } else {
+        console.log(`⚠️ No se puede quitar el último inflable seleccionado`);
+        return;
+      }
+    } else {
+      // Si no está seleccionado, lo agregamos
+      this.selectedInflatables.add(type);
+      console.log(`➕ Agregado: ${type}`);
+    }
 
     // Actualizar botones
-    const buttons = document.querySelectorAll('.inflatable-btn');
-    buttons.forEach(btn => {
-      const btnType = btn.getAttribute('data-inflatable');
-      if (btnType === type) {
-        btn.classList.add('active');
-        console.log(`✅ Activado botón: ${btnType}`);
-      } else {
-        btn.classList.remove('active');
-        console.log(`⭕ Desactivado botón: ${btnType}`);
-      }
-    });
+    this.updateInflatableButtons();
+
+    // Actualizar resumen de selección
+    this.updateSelectionSummary();
 
     // Actualizar disponibilidad y precios
     this.generateAvailability();
     this.renderCalendar();
     this.updatePricing();
     
-    console.log(`✅ Inflable cambiado a: ${type}`);
+    console.log(`✅ Inflables seleccionados:`, Array.from(this.selectedInflatables));
+  }
+
+  updateInflatableButtons() {
+    const buttons = document.querySelectorAll('.inflatable-btn');
+    buttons.forEach(btn => {
+      const btnType = btn.getAttribute('data-inflatable');
+      const icon = btn.querySelector('.selection-icon');
+      
+      if (this.selectedInflatables.has(btnType)) {
+        btn.classList.add('active');
+        if (icon) {
+          icon.classList.remove('fa-circle');
+          icon.classList.add('fa-check-circle');
+        }
+        console.log(`✅ Activado botón: ${btnType}`);
+      } else {
+        btn.classList.remove('active');
+        if (icon) {
+          icon.classList.remove('fa-check-circle');
+          icon.classList.add('fa-circle');
+        }
+        console.log(`⭕ Desactivado botón: ${btnType}`);
+      }
+    });
+  }
+
+  updateSelectionSummary() {
+    const summary = document.getElementById('selection-summary');
+    if (!summary) return;
+
+    const count = this.selectedInflatables.size;
+    const selectedNames = Array.from(this.selectedInflatables)
+      .map(type => this.inflatables[type].name)
+      .join(' + ');
+
+    summary.innerHTML = `
+      <span class="selected-count">
+        ${count} inflable${count > 1 ? 's' : ''} seleccionado${count > 1 ? 's' : ''}: 
+        <strong>${selectedNames}</strong>
+      </span>
+    `;
   }
 
   generateAvailability() {
@@ -300,7 +348,7 @@ class BookingCalendar {
 
   updateSelectedDateInfo() {
     const container = document.getElementById('selected-date-info');
-    if (!container || !this.selectedDate) {
+    if (!container || !this.selectedDate || this.selectedInflatables.size === 0) {
       if (container) container.style.display = 'none';
       return;
     }
@@ -308,62 +356,94 @@ class BookingCalendar {
     container.style.display = 'block';
     const dateStr = this.formatDateSpanish(this.selectedDate);
     const dayType = this.getDayType(this.selectedDate);
-    const inflatable = this.inflatables[this.selectedInflatable];
+    const selectedNames = Array.from(this.selectedInflatables)
+      .map(type => this.inflatables[type].name)
+      .join(' + ');
     
     container.innerHTML = `
       <div class="selected-date-card">
-        <h3><i class="fas fa-calendar-check"></i> Fecha Seleccionada</h3>
+        <h3><i class="fas fa-calendar-check"></i> Reserva Seleccionada</h3>
         <p><strong>Fecha:</strong> ${dateStr}</p>
         <p><strong>Tipo de día:</strong> ${dayType}</p>
-        <p><strong>Inflable:</strong> ${inflatable.name}</p>
+        <p><strong>Inflables:</strong> ${selectedNames}</p>
+        ${this.selectedInflatables.size > 1 ? '<p class="multi-selection-note"><i class="fas fa-star"></i> <strong>¡Reserva múltiple con descuento!</strong></p>' : ''}
       </div>
     `;
   }
 
   updatePricing() {
     const container = document.getElementById('pricing-info');
-    if (!container || !this.selectedDate) {
+    if (!container || !this.selectedDate || this.selectedInflatables.size === 0) {
       if (container) container.style.display = 'none';
       return;
     }
 
     container.style.display = 'block';
     
-    const inflatable = this.inflatables[this.selectedInflatable];
     const dayType = this.getDayType(this.selectedDate);
     const hours = parseInt(document.getElementById('rental-hours')?.value) || 6;
     
-    // Calcular precio base
-    let basePrice;
-    switch (dayType) {
-      case 'festivo':
-        basePrice = inflatable.holiday_price;
-        break;
-      case 'fin de semana':
-        basePrice = inflatable.weekend_price;
-        break;
-      default:
-        basePrice = inflatable.weekday_price;
+    // Calcular precios para cada inflable seleccionado
+    let totalInflatables = 0;
+    let itemsHTML = '';
+    
+    Array.from(this.selectedInflatables).forEach(type => {
+      const inflatable = this.inflatables[type];
+      
+      // Calcular precio base según el día
+      let basePrice;
+      switch (dayType) {
+        case 'festivo':
+          basePrice = inflatable.holiday_price;
+          break;
+        case 'fin de semana':
+          basePrice = inflatable.weekend_price;
+          break;
+        default:
+          basePrice = inflatable.weekday_price;
+      }
+      
+      // Ajustar por horas (precio base es para 6 horas)
+      const hourlyRate = basePrice / 6;
+      const adjustedPrice = hourlyRate * hours;
+      totalInflatables += adjustedPrice;
+      
+      itemsHTML += `
+        <div class="pricing-item">
+          <span>${inflatable.name} (${hours}h):</span>
+          <span class="price-amount">€${adjustedPrice.toFixed(2)}</span>
+        </div>
+      `;
+    });
+    
+    // Calcular descuento por múltiples inflables
+    const multiInflatableDiscount = this.selectedInflatables.size > 1 ? totalInflatables * 0.10 : 0;
+    const discountedTotal = totalInflatables - multiInflatableDiscount;
+    
+    // Tarifas adicionales
+    const setupFee = 25.00 * this.selectedInflatables.size; // Setup por inflable
+    const cleaningFee = 15.00; // Una sola limpieza
+    const total = discountedTotal + setupFee + cleaningFee;
+    
+    // Generar HTML para mostrar precios
+    let discountHTML = '';
+    if (multiInflatableDiscount > 0) {
+      discountHTML = `
+        <div class="pricing-item discount">
+          <span><i class="fas fa-tags"></i> Descuento múltiples inflables (10%):</span>
+          <span class="price-amount discount-amount">-€${multiInflatableDiscount.toFixed(2)}</span>
+        </div>
+      `;
     }
-    
-    // Ajustar por horas (precio base es para 6 horas)
-    const hourlyRate = basePrice / 6;
-    const adjustedPrice = hourlyRate * hours;
-    
-    const setupFee = 25.00;
-    const cleaningFee = 15.00;
-    const total = adjustedPrice + setupFee + cleaningFee;
     
     container.innerHTML = `
       <div class="pricing-card">
         <h3><i class="fas fa-euro-sign"></i> Resumen de Precios</h3>
         <div class="pricing-breakdown">
+          ${itemsHTML}
+          ${discountHTML}
           <div class="pricing-item">
-            <span>Alquiler ${inflatable.name} (${hours}h):</span>
-            <span class="price-amount">€${adjustedPrice.toFixed(2)}</span>
-          </div>
-          <div class="pricing-item">
-            <span>Instalación y montaje:</span>
+            <span>Instalación y montaje (${this.selectedInflatables.size} inflable${this.selectedInflatables.size > 1 ? 's' : ''}):</span>
             <span class="price-amount">€${setupFee.toFixed(2)}</span>
           </div>
           <div class="pricing-item">
@@ -377,8 +457,9 @@ class BookingCalendar {
         </div>
         <p class="pricing-note">
           <i class="fas fa-info-circle"></i>
-          Día ${dayType} - Precios incluyen IVA
+          Día ${dayType} - ${this.selectedInflatables.size > 1 ? '¡Descuento aplicado por múltiples inflables!' : 'Precios incluyen IVA'}
         </p>
+        ${this.selectedInflatables.size > 1 ? '<div class="multi-rental-badge"><i class="fas fa-star"></i> ¡Reserva Múltiple!</div>' : ''}
       </div>
     `;
     
@@ -423,6 +504,118 @@ class BookingCalendar {
       formSection.scrollIntoView({ behavior: 'smooth' });
     }
   }
+
+  // Método para manejar el envío del formulario
+  async handleFormSubmission(formData) {
+    console.log('📋 Procesando reserva múltiple...');
+
+    try {
+      // Preparar datos de la reserva
+      const reservationData = {
+        date: this.formatDate(this.selectedDate),
+        inflatableTypes: Array.from(this.selectedInflatables),
+        totalPrice: this.calculateTotalPrice(),
+        customer: {
+          name: formData.get('customer-name'),
+          email: formData.get('customer-email'),
+          phone: formData.get('customer-phone'),
+          address: formData.get('customer-address')
+        },
+        event: {
+          type: formData.get('event-type'),
+          guests: parseInt(formData.get('guest-count')),
+          hours: parseInt(formData.get('rental-hours')),
+        },
+        specialRequests: formData.get('special-requests') || ''
+      };
+
+      console.log('📝 Datos de reserva preparados:', reservationData);
+
+      // Enviar usando n8n integration (si está disponible)
+      let result;
+      if (window.n8nIntegration) {
+        result = await window.n8nIntegration.sendReservation(reservationData);
+      } else {
+        // Fallback si n8n no está disponible
+        result = await this.processReservationLocally(reservationData);
+      }
+
+      return result;
+
+    } catch (error) {
+      console.error('❌ Error procesando reserva:', error);
+      return {
+        success: false,
+        message: 'Error procesando la reserva. Por favor, inténtalo de nuevo.'
+      };
+    }
+  }
+
+  async processReservationLocally(reservationData) {
+    // Procesamiento local como fallback
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const reservationId = `BR${Date.now()}`;
+        
+        // Guardar localmente
+        const savedReservations = JSON.parse(localStorage.getItem('localReservations') || '[]');
+        savedReservations.push({
+          ...reservationData,
+          id: reservationId,
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        });
+        localStorage.setItem('localReservations', JSON.stringify(savedReservations));
+
+        console.log('💾 Reserva guardada localmente:', reservationId);
+        
+        resolve({
+          success: true,
+          reservationId: reservationId,
+          message: 'Reserva recibida correctamente'
+        });
+      }, 1000);
+    });
+  }
+
+  calculateTotalPrice() {
+    if (!this.selectedDate || this.selectedInflatables.size === 0) return 0;
+
+    const dayType = this.getDayType(this.selectedDate);
+    const hours = parseInt(document.getElementById('rental-hours')?.value) || 6;
+    
+    // Calcular total de inflables
+    let totalInflatables = 0;
+    Array.from(this.selectedInflatables).forEach(type => {
+      const inflatable = this.inflatables[type];
+      let basePrice;
+      
+      switch (dayType) {
+        case 'festivo':
+          basePrice = inflatable.holiday_price;
+          break;
+        case 'fin de semana':
+          basePrice = inflatable.weekend_price;
+          break;
+        default:
+          basePrice = inflatable.weekday_price;
+      }
+      
+      const hourlyRate = basePrice / 6;
+      const adjustedPrice = hourlyRate * hours;
+      totalInflatables += adjustedPrice;
+    });
+    
+    // Descuento por múltiples inflables
+    const multiInflatableDiscount = this.selectedInflatables.size > 1 ? totalInflatables * 0.10 : 0;
+    const discountedTotal = totalInflatables - multiInflatableDiscount;
+    
+    // Tarifas adicionales
+    const setupFee = 25.00 * this.selectedInflatables.size;
+    const cleaningFee = 15.00;
+    
+    return discountedTotal + setupFee + cleaningFee;
+  }
 }
 
 // Inicializar cuando el DOM esté listo
@@ -454,5 +647,80 @@ setTimeout(() => {
     initBookingSystem();
   }
 }, 1000);
+
+// Event listener para el formulario de reservas
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('booking-form');
+  if (form) {
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (!bookingSystem || !bookingSystem.selectedDate || bookingSystem.selectedInflatables.size === 0) {
+        alert('Por favor, selecciona una fecha y al menos un inflable antes de enviar el formulario.');
+        return;
+      }
+
+      console.log('📝 Enviando formulario de reserva...');
+      
+      // Mostrar loading
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+      submitBtn.disabled = true;
+
+      try {
+        const formData = new FormData(form);
+        const result = await bookingSystem.handleFormSubmission(formData);
+
+        if (result.success) {
+          // Mostrar mensaje de éxito
+          showSuccessMessage(result.reservationId, result.message);
+          form.reset();
+          
+          // Reset del sistema
+          bookingSystem.selectedDate = null;
+          bookingSystem.selectedInflatables = new Set(['large']);
+          bookingSystem.updateInflatableButtons();
+          bookingSystem.updateSelectionSummary();
+          bookingSystem.renderCalendar();
+          
+        } else {
+          throw new Error(result.message || 'Error procesando la reserva');
+        }
+
+      } catch (error) {
+        console.error('❌ Error en formulario:', error);
+        alert('Error: ' + error.message);
+      } finally {
+        // Restaurar botón
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+  }
+});
+
+function showSuccessMessage(reservationId, message) {
+  const formSection = document.getElementById('booking-form-section');
+  if (formSection) {
+    formSection.innerHTML = `
+      <div class="success-message">
+        <div class="success-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <h3>¡Reserva Confirmada!</h3>
+        <p>${message}</p>
+        <div class="booking-details">
+          <p><strong>ID de Reserva:</strong> ${reservationId}</p>
+          <p><strong>Estado:</strong> Pendiente de confirmación</p>
+        </div>
+        <p class="success-note">Nos pondremos en contacto contigo para confirmar los detalles.</p>
+        <button class="btn btn-primary mt-lg" onclick="location.reload()">
+          <i class="fas fa-plus"></i> Nueva Reserva
+        </button>
+      </div>
+    `;
+  }
+}
 
 console.log('📄 Script de calendario cargado completamente');

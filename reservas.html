@@ -65,14 +65,24 @@
                 <!-- Calendar Section -->
                 <section class="calendar-section">
                     <div class="calendar-header">
-                        <h2 class="calendar-title">Selecciona tu fecha</h2>
+                        <h2 class="calendar-title">Selecciona tu fecha e inflables</h2>
                         <div class="inflatable-selector">
-                            <button class="inflatable-btn active" data-inflatable="large">
-                                🏰 Grande
-                            </button>
-                            <button class="inflatable-btn" data-inflatable="small">
-                                🎈 Pequeño
-                            </button>
+                            <p class="selector-subtitle">Puedes seleccionar uno o ambos inflables:</p>
+                            <div class="inflatable-options">
+                                <button class="inflatable-btn multi-select active" data-inflatable="large">
+                                    <i class="fas fa-check-circle selection-icon"></i>
+                                    🏰 Grande
+                                    <span class="price-hint">desde €150</span>
+                                </button>
+                                <button class="inflatable-btn multi-select" data-inflatable="small">
+                                    <i class="fas fa-circle selection-icon"></i>
+                                    🎈 Pequeño  
+                                    <span class="price-hint">desde €100</span>
+                                </button>
+                            </div>
+                            <div class="selection-summary" id="selection-summary">
+                                <span class="selected-count">1 inflable seleccionado</span>
+                            </div>
                         </div>
                     </div>
 
@@ -289,7 +299,7 @@
     <!-- Scripts -->
     <script src="src/js/config.js"></script>
     <script src="src/js/main.js"></script>
-    <script src="src/js/calendar-simple.js"></script>
+    <script src="src/js/n8n-integration.js"></script><script src="src/js/calendar-simple.js"></script>
 </body>
 </html>
                                     <span class="detail-label">Precio:</span>
@@ -408,6 +418,6 @@
     <!-- Scripts -->
     <script src="src/js/config.js"></script>
     <script src="src/js/main.js"></script>
-    <script src="src/js/calendar-simple.js"></script>
+    <script src="src/js/n8n-integration.js"></script><script src="src/js/calendar-simple.js"></script>
 </body>
 </html>
