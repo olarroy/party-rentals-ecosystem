@@ -43,30 +43,48 @@ class BookingSystem {
 
   bindEvents() {
     // Navegación del calendario
-    document.getElementById('prev-month')?.addEventListener('click', () => {
-      this.currentDate.setMonth(this.currentDate.getMonth() - 1);
-      this.renderCalendar();
-      this.loadAvailabilityData();
-    });
+    const prevBtn = document.getElementById('prev-month');
+    const nextBtn = document.getElementById('next-month');
+    
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+        this.renderCalendar();
+        this.loadAvailabilityData();
+      });
+    }
 
-    document.getElementById('next-month')?.addEventListener('click', () => {
-      this.currentDate.setMonth(this.currentDate.getMonth() + 1);
-      this.renderCalendar();
-      this.loadAvailabilityData();
-    });
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+        this.renderCalendar();
+        this.loadAvailabilityData();
+      });
+    }
 
-    // Selector de inflable
-    document.querySelectorAll('.inflatable-btn').forEach(btn => {
+    // Selector de inflable - Mejorado con debug
+    const inflatableBtns = document.querySelectorAll('.inflatable-btn');
+    console.log('📍 Found inflatable buttons:', inflatableBtns.length);
+    
+    inflatableBtns.forEach((btn, index) => {
+      console.log(`📍 Button ${index}:`, btn.dataset.inflatable, btn.textContent.trim());
       btn.addEventListener('click', (e) => {
-        this.selectInflatable(e.target.dataset.inflatable);
+        e.preventDefault();
+        e.stopPropagation();
+        const type = e.target.dataset.inflatable || e.currentTarget.dataset.inflatable;
+        console.log('🎯 Clicked inflatable type:', type);
+        this.selectInflatable(type);
       });
     });
 
     // Formulario de reserva
-    document.getElementById('booking-form')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      this.handleBookingSubmit(e);
-    });
+    const form = document.getElementById('booking-form');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.handleBookingSubmit(e);
+      });
+    }
 
     // Validación en tiempo real
     document.querySelectorAll('.form-input, .form-textarea').forEach(input => {
@@ -76,13 +94,30 @@ class BookingSystem {
   }
 
   selectInflatable(type) {
+    if (!type) {
+      console.error('❌ selectInflatable called without type');
+      return;
+    }
+
+    console.log('🎯 Selecting inflatable:', type);
     this.selectedInflatable = type;
     
-    // Actualizar botones
-    document.querySelectorAll('.inflatable-btn').forEach(btn => {
+    // Actualizar botones - Mejorado con debug
+    const allBtns = document.querySelectorAll('.inflatable-btn');
+    console.log('📍 Found buttons for update:', allBtns.length);
+    
+    allBtns.forEach(btn => {
       btn.classList.remove('active');
+      console.log('🔄 Removed active from:', btn.dataset.inflatable);
     });
-    document.querySelector(`[data-inflatable="${type}"]`).classList.add('active');
+    
+    const targetBtn = document.querySelector(`[data-inflatable="${type}"]`);
+    if (targetBtn) {
+      targetBtn.classList.add('active');
+      console.log('✅ Added active to:', type);
+    } else {
+      console.error('❌ Target button not found for type:', type);
+    }
     
     // Recargar disponibilidad y precios
     this.loadAvailabilityData();
@@ -616,8 +651,27 @@ class BookingSystem {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  if (document.getElementById('calendar-grid')) {
+  console.log('🚀 DOM Content Loaded - Initializing Booking System');
+  
+  const calendarGrid = document.getElementById('calendar-grid');
+  const inflatableBtns = document.querySelectorAll('.inflatable-btn');
+  
+  console.log('📍 Calendar grid found:', !!calendarGrid);
+  console.log('📍 Inflatable buttons found:', inflatableBtns.length);
+  
+  if (calendarGrid) {
+    console.log('✅ Initializing BookingSystem');
     window.bookingSystem = new BookingSystem();
+    
+    // Debug: Test button clicks manually
+    setTimeout(() => {
+      console.log('🔧 Setting up manual button debug');
+      inflatableBtns.forEach(btn => {
+        console.log('🔧 Button:', btn.dataset.inflatable, 'has active class:', btn.classList.contains('active'));
+      });
+    }, 1000);
+  } else {
+    console.warn('⚠️ Calendar grid not found - BookingSystem not initialized');
   }
 });
 
