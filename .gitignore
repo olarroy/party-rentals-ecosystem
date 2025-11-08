@@ -1,0 +1,52 @@
+# Archivos de configuración sensibles
+.env
+.env.local
+.env.production
+
+# Credenciales y tokens
+config/secrets.js
+src/config/private.js
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependencias
+node_modules/
+.npm
+.yarn
+
+# Cache
+.cache/
+.parcel-cache/
+
+# Archivos temporales
+.tmp/
+.temp/
+*.tmp
+*.temp
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Build outputs
+dist/
+build/
+
+# Backup files
+*.backup
+*.bak

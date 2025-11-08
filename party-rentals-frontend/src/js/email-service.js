@@ -4,18 +4,25 @@
  */
 class EmailService {
     constructor() {
-        // Configuración EmailJS - CAMBIAR ESTOS VALORES
-        this.serviceId = 'YOUR_SERVICE_ID';
-        this.publicKey = 'YOUR_PUBLIC_KEY';
-        this.isEnabled = false; // Cambiar a true cuando configures EmailJS
+        // Obtener configuración desde ConfigManager
+        const config = window.configManager?.getEmailConfig() || {
+            serviceId: 'YOUR_SERVICE_ID',
+            publicKey: 'YOUR_PUBLIC_KEY',
+            enabled: false
+        };
+        
+        this.serviceId = config.serviceId;
+        this.publicKey = config.publicKey;
+        this.isEnabled = config.enabled;
         
         // Templates
         this.templates = {
-            customerConfirmation: 'YOUR_CUSTOMER_TEMPLATE_ID',
-            ownerNotification: 'YOUR_OWNER_TEMPLATE_ID'
+            customerConfirmation: config.customerTemplate || 'YOUR_CUSTOMER_TEMPLATE_ID',
+            ownerNotification: config.ownerTemplate || 'YOUR_OWNER_TEMPLATE_ID'
         };
         
         console.log('📧 Email Service - Pequefest.com iniciado');
+        console.log('📧 Estado:', this.isEnabled ? 'HABILITADO' : 'SIMULACIÓN');
     }
     
     /**
@@ -98,8 +105,8 @@ class EmailService {
             total_price: `€${booking.totalPrice?.toFixed(0) || '0'}`,
             discount_info: discountText,
             company_name: 'Pequefest.com',
-            company_email: 'info@pequefest.com',
-            company_phone: '+34 123 456 789',
+            company_email: '(pendiente configuración)',
+            company_phone: '(pendiente configuración)',
             website: 'pequefest.com'
         };
     }
@@ -112,8 +119,9 @@ class EmailService {
         
         return {
             ...customerData,
-            to_name: 'Propietario Pequefest',
-            to_email: 'info@pequefest.com', // Tu email de negocio
+            to_name: 'Oscar Larroy',
+            to_email: 'oscarlarroy@gmail.com', // Email real para notificaciones
+            // to_email: 'info@pequefest.com', // TODO: Cambiar cuando esté configurado
             notification_type: 'Nueva Reserva',
             phone_number: booking.customerPhone,
             created_at: new Date().toLocaleString('es-ES')
@@ -182,7 +190,7 @@ Pequefest.com - Diversión sin límites
         console.log(`
 📧 PEQUEFEST.COM - SIMULACIÓN EMAIL PROPIETARIO
 ===============================================
-Para: info@pequefest.com
+Para: oscarlarroy@gmail.com
 Asunto: 🎈 Nueva Reserva - ${emailData.booking_id}
 
 NUEVA RESERVA RECIBIDA:

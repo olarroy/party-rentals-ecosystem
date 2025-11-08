@@ -4,13 +4,20 @@
  */
 class TelegramIntegration {
     constructor() {
-        // Configuración del bot - CAMBIAR ESTOS VALORES
-        this.botToken = 'YOUR_BOT_TOKEN_HERE';
-        this.chatId = 'YOUR_CHAT_ID_HERE';
-        this.isEnabled = false; // Cambiar a true cuando configures el bot
+        // Obtener configuración desde ConfigManager
+        const config = window.configManager?.getTelegramConfig() || {
+            botToken: 'YOUR_BOT_TOKEN_HERE',
+            chatId: 'YOUR_CHAT_ID_HERE',
+            enabled: false
+        };
+        
+        this.botToken = config.botToken;
+        this.chatId = config.chatId;
+        this.isEnabled = config.enabled;
         this.apiUrl = `https://api.telegram.org/bot${this.botToken}`;
         
         console.log('📱 Telegram Integration - Pequefest.com iniciado');
+        console.log('📱 Estado:', this.isEnabled ? 'HABILITADO' : 'SIMULACIÓN');
     }
     
     /**
