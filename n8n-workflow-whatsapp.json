@@ -1,0 +1,238 @@
+{
+  "name": "Party Rentals - WhatsApp Notifications",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "party-rentals",
+        "options": {}
+      },
+      "name": "Webhook - Nueva Reserva",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "id": "webhook-reserva"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "customer_name",
+              "value": "={{$json.reservation.customer.name}}"
+            },
+            {
+              "name": "customer_phone", 
+              "value": "={{$json.reservation.customer.phone}}"
+            },
+            {
+              "name": "customer_email",
+              "value": "={{$json.reservation.customer.email}}"
+            },
+            {
+              "name": "reservation_date",
+              "value": "={{$json.reservation.date}}"
+            },
+            {
+              "name": "inflatable_types",
+              "value": "={{$json.reservation.inflatable_types.join(' + ')}}"
+            },
+            {
+              "name": "total_price",
+              "value": "={{$json.reservation.total_price}}"
+            },
+            {
+              "name": "reservation_id",
+              "value": "={{$json.reservation.id}}"
+            },
+            {
+              "name": "event_hours",
+              "value": "={{$json.reservation.event.hours || 6}}"
+            },
+            {
+              "name": "guest_count",
+              "value": "={{$json.reservation.event.guests || 'No especificado'}}"
+            },
+            {
+              "name": "customer_address",
+              "value": "={{$json.reservation.customer.address}}"
+            }
+          ]
+        }
+      },
+      "name": "Extraer Datos",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [460, 300],
+      "id": "extraer-datos"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.customer_phone}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "name": "¿Tiene WhatsApp?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [680, 300],
+      "id": "validar-whatsapp"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "messageType": "text",
+        "recipientPhoneNumber": "={{$json.customer_phone}}",
+        "message": "🎉 *¡Reserva Confirmada - FiestaInflables!*\n\n📋 *Detalles de tu reserva:*\n• 📅 Fecha: {{$json.reservation_date}}\n• 🎈 Inflables: {{$json.inflatable_types}}\n• ⏰ Duración: {{$json.event_hours}} horas\n• 👥 Invitados: {{$json.guest_count}}\n• 💰 Total: €{{$json.total_price}}\n\n🆔 *ID Reserva:* {{$json.reservation_id}}\n\n📞 *Próximos pasos:*\n• Te llamaremos 24h antes del evento\n• Instalación 1 hora antes del evento\n• ¡Que disfrutes la fiesta! 🎊\n\n_FiestaInflables - Tu diversión es nuestra pasión_ ✨"
+      },
+      "name": "WhatsApp - Confirmación Cliente",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [900, 200],
+      "id": "whatsapp-cliente"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send", 
+        "messageType": "text",
+        "recipientPhoneNumber": "+34123456789",
+        "message": "🔔 *NUEVA RESERVA RECIBIDA*\n\n👤 *Cliente:* {{$json.customer_name}}\n📱 *Teléfono:* {{$json.customer_phone}}\n📧 *Email:* {{$json.customer_email}}\n📅 *Fecha:* {{$json.reservation_date}}\n🎈 *Inflables:* {{$json.inflatable_types}}\n⏰ *Duración:* {{$json.event_hours}} horas\n👥 *Invitados:* {{$json.guest_count}}\n💰 *Total:* €{{$json.total_price}}\n📍 *Dirección:* {{$json.customer_address}}\n🆔 *ID:* {{$json.reservation_id}}\n\n⚡ *Acciones requeridas:*\n• Confirmar disponibilidad\n• Llamar al cliente 24h antes\n• Preparar equipo de instalación\n\n_Sistema automatizado - FiestaInflables_ 🤖"
+      },
+      "name": "WhatsApp - Notificación Propietario",
+      "type": "n8n-nodes-base.whatsApp", 
+      "typeVersion": 1,
+      "position": [900, 300],
+      "id": "whatsapp-propietario"
+    },
+    {
+      "parameters": {
+        "to": "{{$json.customer_email}}",
+        "subject": "🎉 Reserva Confirmada - FiestaInflables [{{$json.reservation_id}}]",
+        "emailType": "html",
+        "message": "<!DOCTYPE html>\n<html>\n<head>\n    <style>\n        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; }\n        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }\n        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; border-radius: 10px; margin-bottom: 20px; }\n        .details { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }\n        .footer { text-align: center; margin-top: 30px; color: #666; }\n        .highlight { color: #667eea; font-weight: bold; }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <h1>🎉 ¡Reserva Confirmada!</h1>\n            <p>Gracias por elegir FiestaInflables</p>\n        </div>\n        \n        <h2>Hola {{$json.customer_name}},</h2>\n        <p>Tu reserva ha sido confirmada exitosamente. Aquí tienes todos los detalles:</p>\n        \n        <div class=\"details\">\n            <h3>📋 Detalles de la Reserva</h3>\n            <p><strong>ID de Reserva:</strong> <span class=\"highlight\">{{$json.reservation_id}}</span></p>\n            <p><strong>📅 Fecha:</strong> {{$json.reservation_date}}</p>\n            <p><strong>🎈 Inflables:</strong> {{$json.inflatable_types}}</p>\n            <p><strong>⏰ Duración:</strong> {{$json.event_hours}} horas</p>\n            <p><strong>👥 Invitados:</strong> {{$json.guest_count}}</p>\n            <p><strong>💰 Total:</strong> €{{$json.total_price}}</p>\n        </div>\n        \n        <h3>📞 Próximos Pasos</h3>\n        <ul>\n            <li>Te llamaremos 24 horas antes del evento para confirmar detalles</li>\n            <li>Nuestro equipo llegará 1 hora antes para la instalación</li>\n            <li>Al finalizar el evento, recogeremos todo el equipo</li>\n        </ul>\n        \n        <div class=\"footer\">\n            <p>¿Tienes alguna pregunta? Contáctanos:</p>\n            <p>📱 +34 123 456 789 | 📧 info@fiestainflables.com</p>\n            <p><em>FiestaInflables - Tu diversión es nuestra pasión</em> ✨</p>\n        </div>\n    </div>\n</body>\n</html>"
+      },
+      "name": "Email - Confirmación Cliente",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [900, 400],
+      "id": "email-cliente"
+    },
+    {
+      "parameters": {
+        "documentId": "TU_GOOGLE_SHEET_ID",
+        "sheetName": "Reservas",
+        "options": {},
+        "values": {
+          "A": "={{$json.reservation_id}}",
+          "B": "={{$json.reservation_date}}",
+          "C": "={{$json.customer_name}}",
+          "D": "={{$json.customer_phone}}",
+          "E": "={{$json.customer_email}}",
+          "F": "={{$json.inflatable_types}}",
+          "G": "={{$json.event_hours}}",
+          "H": "={{$json.guest_count}}",
+          "I": "={{$json.total_price}}",
+          "J": "={{$json.customer_address}}",
+          "K": "=NOW()",
+          "L": "Pendiente"
+        }
+      },
+      "name": "Guardar en Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1120, 300],
+      "id": "google-sheets"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"message\": \"Reserva procesada correctamente\",\n  \"reservation_id\": \"{{$json.reservation_id}}\",\n  \"notifications_sent\": {\n    \"whatsapp_customer\": true,\n    \"whatsapp_owner\": true,\n    \"email_customer\": true\n  }\n}"
+      },
+      "name": "Respuesta Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1340, 300],
+      "id": "respuesta-success"
+    }
+  ],
+  "connections": {
+    "Webhook - Nueva Reserva": {
+      "main": [
+        [
+          {
+            "node": "Extraer Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer Datos": {
+      "main": [
+        [
+          {
+            "node": "¿Tiene WhatsApp?",
+            "type": "main", 
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Tiene WhatsApp?": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp - Confirmación Cliente",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "WhatsApp - Notificación Propietario",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email - Confirmación Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp - Notificación Propietario": {
+      "main": [
+        [
+          {
+            "node": "Guardar en Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar en Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Respuesta Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": ["party-rentals", "whatsapp", "automation"],
+  "triggerCount": 0,
+  "updatedAt": "2025-10-12T00:00:00.000Z",
+  "versionId": "1"
+}

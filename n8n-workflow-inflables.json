@@ -1,0 +1,267 @@
+{
+  "name": "🎈 Reservas Inflables → WhatsApp + Email",
+  "version": 1,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "party-rentals",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "webhook-start",
+      "name": "📥 Webhook Reservas",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "party-rentals-webhook"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "cliente_nombre",
+              "value": "={{ $json.reservation.customer.name }}"
+            },
+            {
+              "name": "cliente_email", 
+              "value": "={{ $json.reservation.customer.email }}"
+            },
+            {
+              "name": "cliente_telefono",
+              "value": "={{ $json.reservation.customer.phone }}"
+            },
+            {
+              "name": "fecha_evento",
+              "value": "={{ $json.reservation.date }}"
+            },
+            {
+              "name": "inflables_seleccionados",
+              "value": "={{ $json.reservation.inflatable_types.join(' + ') }}"
+            },
+            {
+              "name": "precio_total",
+              "value": "={{ $json.reservation.total_price }}€"
+            },
+            {
+              "name": "invitados",
+              "value": "={{ $json.reservation.event.guests }}"
+            },
+            {
+              "name": "horas_alquiler", 
+              "value": "={{ $json.reservation.event.hours }}"
+            },
+            {
+              "name": "tipo_evento",
+              "value": "={{ $json.reservation.event.type }}"
+            },
+            {
+              "name": "direccion_montaje",
+              "value": "={{ $json.reservation.customer.address }}"
+            },
+            {
+              "name": "solicitudes_especiales",
+              "value": "={{ $json.reservation.special_requests || 'Ninguna' }}"
+            },
+            {
+              "name": "id_reserva",
+              "value": "={{ $json.reservation.id }}"
+            }
+          ]
+        }
+      },
+      "id": "process-data",
+      "name": "🔄 Procesar Datos",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "from": "whatsapp:+14155238886",
+        "to": "whatsapp:+34TU_NUMERO_NEGOCIO",
+        "body": "🎉 NUEVA RESERVA INFLABLES\n\n📋 DETALLES:\n👤 Cliente: {{ $json.cliente_nombre }}\n📱 Teléfono: {{ $json.cliente_telefono }}\n📧 Email: {{ $json.cliente_email }}\n\n🎈 RESERVA:\n📅 Fecha: {{ $json.fecha_evento }}\n🏰 Inflables: {{ $json.inflables_seleccionados }}\n👥 Invitados: {{ $json.invitados }}\n⏱️ Duración: {{ $json.horas_alquiler }}h\n🎪 Evento: {{ $json.tipo_evento }}\n💰 Total: {{ $json.precio_total }}\n\n📍 DIRECCIÓN:\n{{ $json.direccion_montaje }}\n\n📝 SOLICITUDES:\n{{ $json.solicitudes_especiales }}\n\n🆔 ID: {{ $json.id_reserva }}\n\n¡Contactar cliente para confirmar!"
+      },
+      "id": "whatsapp-owner", 
+      "name": "📱 WhatsApp → Dueño",
+      "type": "n8n-nodes-base.twilioApi",
+      "typeVersion": 1,
+      "position": [680, 200],
+      "credentials": {
+        "twilioApi": {
+          "id": "twilio-credentials",
+          "name": "Twilio Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send", 
+        "from": "whatsapp:+14155238886",
+        "to": "whatsapp:{{ $json.cliente_telefono }}",
+        "body": "¡Hola {{ $json.cliente_nombre }}! 🎉\n\n✅ RESERVA RECIBIDA\n\nHemos recibido tu solicitud de reserva:\n📅 Fecha: {{ $json.fecha_evento }}\n🎈 Inflables: {{ $json.inflables_seleccionados }}\n💰 Total: {{ $json.precio_total }}\n🆔 Reserva: {{ $json.id_reserva }}\n\n⏳ PRÓXIMOS PASOS:\n• Te contactaremos en las próximas 2 horas\n• Confirmaremos disponibilidad\n• Coordinaremos detalles de montaje\n\n¡Gracias por elegirnos! 🎈\nFiestaInflables"
+      },
+      "id": "whatsapp-customer",
+      "name": "📱 WhatsApp → Cliente", 
+      "type": "n8n-nodes-base.twilioApi",
+      "typeVersion": 1,
+      "position": [680, 400],
+      "credentials": {
+        "twilioApi": {
+          "id": "twilio-credentials",
+          "name": "Twilio Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "reservas@fiestainflables.com",
+        "toEmail": "{{ $json.cliente_email }}",
+        "subject": "✅ Confirmación de Reserva - {{ $json.id_reserva }}",
+        "html": "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8f9fa; padding: 20px;'>\n  <div style='background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);'>\n    <h1 style='color: #007bff; text-align: center; margin-top: 0;'>🎉 ¡Reserva Confirmada!</h1>\n    \n    <div style='background: #e7f3ff; padding: 20px; border-radius: 8px; margin: 20px 0;'>\n      <h2 style='color: #0056b3; margin-top: 0;'>Detalles de tu Reserva</h2>\n      <p><strong>ID:</strong> {{ $json.id_reserva }}</p>\n      <p><strong>Cliente:</strong> {{ $json.cliente_nombre }}</p>\n      <p><strong>Fecha:</strong> {{ $json.fecha_evento }}</p>\n      <p><strong>Inflables:</strong> {{ $json.inflables_seleccionados }}</p>\n      <p><strong>Duración:</strong> {{ $json.horas_alquiler }} horas</p>\n      <p><strong>Invitados:</strong> {{ $json.invitados }}</p>\n      <p><strong>Total:</strong> <span style='font-size: 1.2em; color: #28a745;'>{{ $json.precio_total }}</span></p>\n    </div>\n    \n    <div style='background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;'>\n      <h3 style='color: #856404; margin-top: 0;'>📍 Dirección de Montaje</h3>\n      <p style='margin: 0;'>{{ $json.direccion_montaje }}</p>\n    </div>\n    \n    <div style='margin: 30px 0; padding: 20px; background: #d1ecf1; border-radius: 8px;'>\n      <h3 style='color: #0c5460; margin-top: 0;'>🚀 Próximos Pasos</h3>\n      <ul style='margin: 0; padding-left: 20px;'>\n        <li>Te contactaremos en las próximas 2 horas para confirmar</li>\n        <li>Coordinaremos la hora exacta de montaje</li>\n        <li>El equipo llegará 1 hora antes del evento</li>\n        <li>¡Solo tienes que disfrutar! 🎈</li>\n      </ul>\n    </div>\n    \n    <div style='text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;'>\n      <p style='color: #6c757d;'>¡Gracias por elegir FiestaInflables!</p>\n      <p style='color: #6c757d; font-size: 0.9em;'>📱 +34 123 456 789 | 📧 info@fiestainflables.com</p>\n    </div>\n  </div>\n</div>"
+      },
+      "id": "email-customer",
+      "name": "📧 Email → Cliente",
+      "type": "n8n-nodes-base.emailSend", 
+      "typeVersion": 2,
+      "position": [900, 300],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-credentials",
+          "name": "Email SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "append",
+        "documentId": "TU_GOOGLE_SHEET_ID",
+        "sheetName": "Reservas",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha Reserva": "={{ $now }}",
+            "ID": "={{ $json.id_reserva }}",
+            "Cliente": "={{ $json.cliente_nombre }}",
+            "Email": "={{ $json.cliente_email }}",
+            "Teléfono": "={{ $json.cliente_telefono }}",
+            "Fecha Evento": "={{ $json.fecha_evento }}",
+            "Inflables": "={{ $json.inflables_seleccionados }}",
+            "Invitados": "={{ $json.invitados }}",
+            "Horas": "={{ $json.horas_alquiler }}",
+            "Tipo Evento": "={{ $json.tipo_evento }}",
+            "Dirección": "={{ $json.direccion_montaje }}",
+            "Total": "={{ $json.precio_total }}",
+            "Estado": "Pendiente",
+            "Solicitudes": "={{ $json.solicitudes_especiales }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "google-sheets",
+      "name": "📊 Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [900, 500],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-credentials", 
+          "name": "Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"message\": \"Reserva procesada correctamente\",\n  \"reservationId\": \"{{ $('🔄 Procesar Datos').item.json.id_reserva }}\",\n  \"status\": \"confirmed\"\n}"
+      },
+      "id": "webhook-response",
+      "name": "✅ Respuesta Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 300]
+    }
+  ],
+  "connections": {
+    "📥 Webhook Reservas": {
+      "main": [
+        [
+          {
+            "node": "🔄 Procesar Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Procesar Datos": {
+      "main": [
+        [
+          {
+            "node": "📱 WhatsApp → Dueño",
+            "type": "main", 
+            "index": 0
+          },
+          {
+            "node": "📱 WhatsApp → Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📱 WhatsApp → Dueño": {
+      "main": [
+        [
+          {
+            "node": "📧 Email → Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📱 WhatsApp → Cliente": {
+      "main": [
+        [
+          {
+            "node": "📊 Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📧 Email → Cliente": {
+      "main": [
+        [
+          {
+            "node": "✅ Respuesta Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "✅ Respuesta Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Europe/Madrid"
+  }
+}

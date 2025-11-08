@@ -39,6 +39,8 @@ class N8NIntegration {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Webhook-Secret': 'party-rentals-2025-secure',
+          'User-Agent': 'FiestaInflables-Website/1.0'
         },
         body: JSON.stringify(payload)
       });

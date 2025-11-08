@@ -510,37 +510,63 @@ class BookingCalendar {
     console.log('📋 Procesando reserva múltiple...');
 
     try {
+      // Generar ID único para la reserva
+      const bookingId = `PQF${Date.now()}`;
+      
       // Preparar datos de la reserva
       const reservationData = {
-        date: this.formatDate(this.selectedDate),
-        inflatableTypes: Array.from(this.selectedInflatables),
+        bookingId: bookingId,
+        rentalDate: this.formatDate(this.selectedDate),
+        selectedInflatables: Array.from(this.selectedInflatables),
         totalPrice: this.calculateTotalPrice(),
-        customer: {
-          name: formData.get('customer-name'),
-          email: formData.get('customer-email'),
-          phone: formData.get('customer-phone'),
-          address: formData.get('customer-address')
-        },
-        event: {
-          type: formData.get('event-type'),
-          guests: parseInt(formData.get('guest-count')),
-          hours: parseInt(formData.get('rental-hours')),
-        },
-        specialRequests: formData.get('special-requests') || ''
+        customerName: formData.get('customer-name'),
+        customerEmail: formData.get('customer-email'),
+        customerPhone: formData.get('customer-phone'),
+        setupAddress: formData.get('customer-address'),
+        eventType: formData.get('event-type'),
+        guestCount: parseInt(formData.get('guest-count')),
+        rentalHours: parseInt(formData.get('rental-hours')),
+        specialRequests: formData.get('special-requests') || '',
+        createdAt: new Date().toISOString()
       };
 
       console.log('📝 Datos de reserva preparados:', reservationData);
 
-      // Enviar usando n8n integration (si está disponible)
-      let result;
-      if (window.n8nIntegration) {
-        result = await window.n8nIntegration.sendReservation(reservationData);
-      } else {
-        // Fallback si n8n no está disponible
-        result = await this.processReservationLocally(reservationData);
+      // 1. Enviar notificación por email al cliente
+      if (window.EmailService) {
+        const emailService = new window.EmailService();
+        const customerEmailResult = await emailService.sendCustomerConfirmation(reservationData);
+        console.log('📧 Email cliente:', customerEmailResult);
       }
 
-      return result;
+      // 2. Enviar notificación por email al propietario
+      if (window.EmailService) {
+        const emailService = new window.EmailService();
+        const ownerEmailResult = await emailService.sendOwnerNotification(reservationData);
+        console.log('📧 Email propietario:', ownerEmailResult);
+      }
+
+      // 3. Enviar notificación Telegram al propietario
+      if (window.TelegramIntegration) {
+        const telegramService = new window.TelegramIntegration();
+        const telegramResult = await telegramService.sendBookingNotification(reservationData);
+        console.log('📱 Telegram:', telegramResult);
+      }
+
+      // 4. Guardar en base de datos (Supabase)
+      if (window.supabaseClient) {
+        const dbResult = await this.saveToDatabase(reservationData);
+        console.log('💾 Base de datos:', dbResult);
+      }
+
+      // 5. Fallback local
+      this.saveToLocalStorage(reservationData);
+
+      return {
+        success: true,
+        bookingId: bookingId,
+        message: 'Reserva confirmada exitosamente'
+      };
 
     } catch (error) {
       console.error('❌ Error procesando reserva:', error);
@@ -551,31 +577,46 @@ class BookingCalendar {
     }
   }
 
-  async processReservationLocally(reservationData) {
-    // Procesamiento local como fallback
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const reservationId = `BR${Date.now()}`;
-        
-        // Guardar localmente
-        const savedReservations = JSON.parse(localStorage.getItem('localReservations') || '[]');
-        savedReservations.push({
-          ...reservationData,
-          id: reservationId,
-          status: 'pending',
-          createdAt: new Date().toISOString()
-        });
-        localStorage.setItem('localReservations', JSON.stringify(savedReservations));
+  async saveToDatabase(reservationData) {
+    try {
+      const { data, error } = await window.supabaseClient
+        .from('reservations')
+        .insert([{
+          booking_id: reservationData.bookingId,
+          rental_date: reservationData.rentalDate,
+          inflatable_types: reservationData.selectedInflatables,
+          total_price: reservationData.totalPrice,
+          customer_name: reservationData.customerName,
+          customer_email: reservationData.customerEmail,
+          customer_phone: reservationData.customerPhone,
+          setup_address: reservationData.setupAddress,
+          event_type: reservationData.eventType,
+          guest_count: reservationData.guestCount,
+          rental_hours: reservationData.rentalHours,
+          special_requests: reservationData.specialRequests,
+          status: 'confirmed',
+          created_at: reservationData.createdAt
+        }]);
 
-        console.log('💾 Reserva guardada localmente:', reservationId);
-        
-        resolve({
-          success: true,
-          reservationId: reservationId,
-          message: 'Reserva recibida correctamente'
-        });
-      }, 1000);
-    });
+      if (error) throw error;
+
+      console.log('✅ Reserva guardada en Supabase');
+      return { success: true, data };
+    } catch (error) {
+      console.error('❌ Error guardando en Supabase:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  saveToLocalStorage(reservationData) {
+    try {
+      const savedReservations = JSON.parse(localStorage.getItem('pequefest_reservations') || '[]');
+      savedReservations.push(reservationData);
+      localStorage.setItem('pequefest_reservations', JSON.stringify(savedReservations));
+      console.log('✅ Reserva guardada localmente');
+    } catch (error) {
+      console.error('❌ Error guardando localmente:', error);
+    }
   }
 
   calculateTotalPrice() {
@@ -674,16 +715,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (result.success) {
           // Mostrar mensaje de éxito
-          showSuccessMessage(result.reservationId, result.message);
+          showSuccessMessage(result.bookingId, result.message);
           form.reset();
           
           // Reset del sistema
           bookingSystem.selectedDate = null;
-          bookingSystem.selectedInflatables = new Set(['large']);
-          bookingSystem.updateInflatableButtons();
-          bookingSystem.updateSelectionSummary();
+          bookingSystem.selectedInflatables.clear();
+          bookingSystem.selectedInflatables.add('large'); // Volver a selección por defecto
           bookingSystem.renderCalendar();
-          
+          bookingSystem.updateInflatableButtons();
+          bookingSystem.updateSelectedDateInfo();
+          bookingSystem.updatePricing();
         } else {
           throw new Error(result.message || 'Error procesando la reserva');
         }
