@@ -5,37 +5,51 @@
 
 /* Variables CSS (Custom Properties) */
 :root {
-  /* Brand Colors - Vibrant & Premium */
-  --primary-color: hsl(340, 82%, 52%);      /* Vibrant Pink */
-  --primary-dark: hsl(340, 82%, 40%);
-  --primary-light: hsl(340, 100%, 75%);
-  
-  --secondary-color: hsl(260, 100%, 65%);   /* Soft Purple */
-  --secondary-dark: hsl(260, 100%, 55%);
-  --secondary-light: hsl(260, 100%, 80%);
-  
-  --accent-color: hsl(45, 100%, 55%);       /* Sunny Yellow */
-  --accent-hover: hsl(45, 100%, 45%);
+  /* Brand Colors - Bluey Theme (Family Heeler) */
+  --primary-color: #375978;
+  /* Bluey's Dark Spots */
+  --primary-dark: #2b2c41;
+  /* Darker Navy */
+  --primary-light: #88cafc;
+  /* Bluey's Light Body */
+
+  --secondary-color: #88cafc;
+  /* Bluey Light (Secondary) */
+  --secondary-dark: #6b9ec7;
+  --secondary-light: #d2ebff;
+
+  --accent-color: #ed8c56;
+  /* Bingo Orange (Buttons!) */
+  --accent-hover: #d27b4b;
 
   /* Functional Colors */
-  --success-color: hsl(150, 60%, 45%);
-  --warning-color: hsl(40, 90%, 50%);
-  --error-color: hsl(350, 80%, 55%);
-  --info-color: hsl(210, 80%, 55%);
-  
-  /* Neutrals (Blue-tinted for modern feel) */
-  --bg-body: hsl(220, 20%, 97%);
-  --bg-surface: rgba(255, 255, 255, 0.9);
-  --bg-glass: rgba(255, 255, 255, 0.7);
-  
-  --text-main: hsl(220, 30%, 15%);
-  --text-muted: hsl(220, 20%, 45%);
-  --text-light: hsl(220, 20%, 75%);
-  
+  --success-color: #71cf69;
+  /* Lime (Greeny) */
+  --warning-color: #edcc6f;
+  /* Pale Yellow */
+  --error-color: #ff6b6b;
+  /* Soft Red */
+  --info-color: #88cafc;
+
+  /* Neutrals */
+  --bg-body: #d2ebff;
+  /* Light Sky Background */
+  --bg-surface: #ffffff;
+  --bg-glass: rgba(255, 255, 255, 0.85);
+  /* Frosty */
+
+  --text-main: #375978;
+  /* Dark Blue Text */
+  --text-muted: #627d98;
+  --text-light: #fbeea4;
+  /* Creamy Text */
+
   /* Typography */
-  --font-heading: 'Outfit', sans-serif;
+  --font-heading: 'Fredoka', sans-serif;
+  /* Playful Rounded */
   --font-body: 'Inter', sans-serif;
-  
+
+  /* Spacing system (unchanged) */
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -45,8 +59,7 @@
   --font-size-3xl: 2rem;
   --font-size-4xl: 3rem;
   --font-size-5xl: 4rem;
-  
-  /* Spacing system */
+
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -56,24 +69,28 @@
   --space-12: 3rem;
   --space-16: 4rem;
   --space-24: 6rem;
-  
-  /* Effects */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
-  --radius-full: 9999px;
-  
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
-  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.03);
-  --shadow-float: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
-  --shadow-color: 0 10px 30px -5px hsla(340, 82%, 52%, 0.3);
 
-  --blur-glass: 12px;
-  
+  /* Effects - Super Soft */
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-xl: 2rem;
+  /* Super rounded cards */
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 2px 0 rgba(55, 89, 120, 0.1);
+  --shadow-md: 0 4px 0 rgba(55, 89, 120, 0.1);
+  /* 'Sticker' shadow */
+  --shadow-lg: 0 8px 0 rgba(55, 89, 120, 0.1);
+  --shadow-float: 0 15px 0 rgba(55, 89, 120, 0.15);
+  --shadow-color: 0 4px 0 #c27245;
+  /* Solid 3D shadow for buttons */
+
+  --blur-glass: 8px;
+
   --trans-base: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  --trans-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --trans-bounce: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Bouncy! */
 }
 
 /* Base */
@@ -97,7 +114,12 @@ body {
 }
 
 /* Typography */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-heading);
   font-weight: 700;
   line-height: 1.1;
@@ -106,10 +128,21 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.02em;
 }
 
-h1 { font-size: var(--font-size-4xl); }
-h2 { font-size: var(--font-size-3xl); }
-h3 { font-size: var(--font-size-2xl); }
-h4 { font-size: var(--font-size-xl); }
+h1 {
+  font-size: var(--font-size-4xl);
+}
+
+h2 {
+  font-size: var(--font-size-3xl);
+}
+
+h3 {
+  font-size: var(--font-size-2xl);
+}
+
+h4 {
+  font-size: var(--font-size-xl);
+}
 
 p {
   margin-bottom: var(--space-4);
@@ -125,7 +158,9 @@ p {
 }
 
 @media (min-width: 640px) {
-  .container { padding: 0 var(--space-8); }
+  .container {
+    padding: 0 var(--space-8);
+  }
 }
 
 /* Buttons */
@@ -145,14 +180,18 @@ p {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  background: var(--accent-color);
+  /* Bingo Orange */
   color: white;
   box-shadow: var(--shadow-color);
+  border: 2px solid transparent;
 }
 
 .btn-primary:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 15px 35px -5px hsla(340, 82%, 52%, 0.4);
+  transform: translateY(-4px);
+  background: var(--accent-hover);
+  box-shadow: 0 8px 0 #c27245;
+  /* Deep orange shadow */
 }
 
 .btn-secondary {
@@ -179,7 +218,7 @@ p {
   position: sticky;
   top: 0;
   z-index: 100;
-  border-bottom: 1px solid rgba(255,255,255,0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .nav {
@@ -206,7 +245,8 @@ p {
   border-radius: var(--radius-md);
 }
 
-.nav-link:hover, .nav-link.active {
+.nav-link:hover,
+.nav-link.active {
   color: var(--primary-color);
   background: hsla(340, 82%, 52%, 0.05);
 }
@@ -221,7 +261,8 @@ p {
 }
 
 /* Animated background blobs */
-.hero::before, .hero::after {
+.hero::before,
+.hero::after {
   content: '';
   position: absolute;
   border-radius: 50%;
@@ -257,7 +298,9 @@ p {
 }
 
 @media (min-width: 768px) {
-  .hero-content { grid-template-columns: 1.2fr 0.8fr; }
+  .hero-content {
+    grid-template-columns: 1.2fr 0.8fr;
+  }
 }
 
 .hero-text h2 {
@@ -291,7 +334,7 @@ p {
 .service-card {
   background: white;
   border-radius: var(--radius-xl);
-  border: 1px solid rgba(0,0,0,0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
   box-shadow: var(--shadow-lg);
   transition: var(--trans-bounce);
   overflow: hidden;
@@ -336,14 +379,27 @@ p {
   margin-top: var(--space-24);
 }
 
-.footer-brand h3 { color: white; margin: 0; }
-.footer p { color: var(--text-muted); }
+.footer-brand h3 {
+  color: white;
+  margin: 0;
+}
+
+.footer p {
+  color: var(--text-muted);
+}
 
 /* Keyframes */
 @keyframes float {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(30px, 50px); }
+  0% {
+    transform: translate(0, 0);
+  }
+
+  100% {
+    transform: translate(30px, 50px);
+  }
 }
 
 /* Utilities */
-.hidden { display: none !important; }
+.hidden {
+  display: none !important;
+}
