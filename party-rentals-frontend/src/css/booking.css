@@ -175,14 +175,33 @@
 }
 
 /* Flatpickr Customization */
+.calendar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#datePicker {
+  display: none;
+  /* Hide input since we are inline */
+}
+
 .flatpickr-calendar {
-  box-shadow: none !important;
+  box-shadow: var(--shadow-md) !important;
   border: 1px solid #eee !important;
   border-radius: var(--radius-lg) !important;
   margin-top: var(--space-2) !important;
+  font-family: 'Inter', sans-serif !important;
 }
 
 .flatpickr-day.selected {
   background: var(--primary-color) !important;
   border-color: var(--primary-color) !important;
+}
+
+.calendar-legend {
+  width: 260px;
+  /* Aligns with calendar width */
+  margin-top: var(--space-4);
 }
