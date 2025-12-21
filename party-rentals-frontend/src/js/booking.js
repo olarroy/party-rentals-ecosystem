@@ -225,6 +225,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const formData = new FormData(bookingForm);
 
+    // --- Validation: Phone Number (Spain) ---
+    // Must start with 6, 7, or 9 and be exactly 9 digits long.
+    const phone = formData.get('customer-phone') ? formData.get('customer-phone').trim() : '';
+    const phoneRegex = /^[679]{1}[0-9]{8}$/;
+
+    if (!phoneRegex.test(phone)) {
+      showModal('Número Incorrecto', 'Por favor, introduce un número de teléfono válido de España (9 dígitos, empezando por 6, 7 o 9).', false);
+      submitBtn.disabled = false;
+      submitBtn.textContent = '✅ Confirmar Reserva';
+      return;
+    }
+
     const year = state.date.getFullYear();
     const month = String(state.date.getMonth() + 1).padStart(2, '0');
     const day = String(state.date.getDate()).padStart(2, '0');
