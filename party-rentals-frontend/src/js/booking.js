@@ -1,14 +1,13 @@
 
-// Import config is handled by type="module" in HTML, but here we can just use the global Supabase object from CDN
+// Import config is handled by type="module" in HTML, but to ensure we get the global config check:
+// We rely on window.CONFIG being populated by src/js/config.js
 
 document.addEventListener('DOMContentLoaded', async () => {
 
   // --- 0. Init Supabase ---
-  // Reads from window.ENV (injected by src/js/env.js) or standard config
-  const supabaseUrl = (window.ENV && window.ENV.SUPABASE_URL) || 'MISSING_URL';
-  const supabaseKey = (window.ENV && window.ENV.SUPABASE_ANON_KEY) || 'MISSING_KEY';
+  const supabaseUrl = window.CONFIG ? window.CONFIG.SUPABASE_URL : 'MISSING_URL';
+  const supabaseKey = window.CONFIG ? window.CONFIG.SUPABASE_ANON_KEY : 'MISSING_KEY';
 
-  // Check if Supabase client is available (CDN)
   const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
 
   if (!supabase) {
@@ -20,7 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     inflatable: 'LARGE',
     price: 80,
     date: null,
-    bookedDates: [] // ['2024-10-15', '2024-10-20']
+    bookedDates: []
   };
 
   // --- 2. Element Refs ---
@@ -29,63 +28,94 @@ document.addEventListener('DOMContentLoaded', async () => {
   const summaryPrice = document.getElementById('summary-price');
   const radios = document.getElementsByName('inflatable');
   const bookingForm = document.getElementById('booking-form');
-  let calendarInstance = null; // Flatpickr instance
 
-  // --- 3. Async Fetch Availability ---
+  // Custom Modal Refs
+  const modal = document.getElementById('custom-modal');
+  const modalTitle = document.getElementById('modal-title');
+  const modalMessage = document.getElementById('modal-message');
+  const modalIcon = document.getElementById('modal-icon');
+  const modalCloseBtn = document.getElementById('modal-close-btn');
+
+  // --- 3. Helper Functions ---
+  function showModal(title, message, isSuccess = true) {
+    if (!modal) {
+      alert(message); // Fallback
+      return;
+    }
+
+    modalTitle.textContent = title;
+    modalMessage.textContent = message;
+    modalIcon.textContent = isSuccess ? '🎉' : '⚠️';
+
+    // Update button style based on type
+    if (isSuccess) {
+      modalCloseBtn.textContent = '¡Genial!';
+      modalCloseBtn.style.backgroundColor = 'var(--accent-color)';
+    } else {
+      modalCloseBtn.textContent = 'Entendido';
+      modalCloseBtn.style.backgroundColor = 'var(--error-color)';
+    }
+
+    modal.classList.remove('hidden');
+  }
+
+  function hideModal() {
+    if (modal) modal.classList.add('hidden');
+  }
+
+  // Close Modal Event
+  if (modalCloseBtn) {
+    modalCloseBtn.addEventListener('click', hideModal);
+  }
+  // Close on overlay click
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) hideModal();
+    });
+  }
+
+
+  // --- 4. Async Fetch Availability ---
   async function fetchBookedDates() {
     if (!supabase) return [];
 
-    // Simular network delay para UX
-    // await new Promise(r => setTimeout(r, 500));
-
     try {
-      // Select bookings where status is NOT cancelled
       const { data, error } = await supabase
         .from('bookings')
         .select('event_date')
-        .neq('status', 'cancelled'); // Don't block cancelled dates
+        .neq('status', 'cancelled');
 
       if (error) throw error;
 
-      // Map dates to YYYY-MM-DD
       return data.map(b => b.event_date);
 
     } catch (err) {
       console.error('Error fetching bookings:', err);
-      return []; // Fail safe: show all available if error
+      return [];
     }
   }
 
-  // --- 4. Logic & UI ---
-
-  // Init Loading State for Calendar
-  // (Optional: add a spinner overlay)
+  // --- 5. Logic & UI ---
 
   // Load Data
   state.bookedDates = await fetchBookedDates();
   console.log("Fechas ocupadas:", state.bookedDates);
 
-  // --- 5. Flatpickr Init ---
-  // Custom styles for booked dates are handled by 'disable'
-
-  calendarInstance = flatpickr("#datePicker", {
+  // Flatpickr Init
+  flatpickr("#datePicker", {
     inline: true,
     locale: "es",
     minDate: "today",
     dateFormat: "Y-m-d",
-    disable: state.bookedDates, // THIS BLOCKS THE DATES
+    disable: state.bookedDates,
     onChange: (selectedDates, dateStr) => {
       state.date = selectedDates[0];
       updatePriceWithDate(state.date);
       updateUI();
-    },
-    onDayCreate: function (dObj, dStr, fp, dayElem) {
-      // Optional: Add custom class to booked dates for specific styling if 'disable' isn't enough
-      // But 'disable' automatically adds 'flatpickr-disabled' class
     }
   });
 
-  // --- 6. Inflatable logic ---
+  // Inflatable logic
   radios.forEach(radio => {
     radio.addEventListener('change', (e) => {
       state.inflatable = e.target.value;
@@ -102,12 +132,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   function updatePriceWithDate(date) {
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
     let base = state.inflatable === 'LARGE' ? 80 : 60;
-    if (isWeekend) base += 20; // +20€ fines de semana
+    if (isWeekend) base += 20;
     state.price = base;
   }
 
   function updateUI() {
-    // Update Text
     summaryInfl.textContent = state.inflatable === 'LARGE' ? 'Castillo Grande' : 'Castillo Pequeño';
     summaryPrice.textContent = `€${state.price}`;
 
@@ -118,12 +147,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // --- 7. Form Submission ---
+  // --- 6. Form Submission ---
   bookingForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     if (!state.date) {
-      alert('⚠️ Por favor, selecciona una fecha en el calendario.');
+      showModal('¡Ups!', 'Por favor, selecciona una fecha en el calendario antes de continuar.', false);
       return;
     }
 
@@ -133,14 +162,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const formData = new FormData(bookingForm);
 
+    // Ensure date is in YYYY-MM-DD local format
+    const year = state.date.getFullYear();
+    const month = String(state.date.getMonth() + 1).padStart(2, '0');
+    const day = String(state.date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+
     const bookingPayload = {
       customer_name: formData.get('customer-name'),
-      customer_email: 'no-email@provided.com', // Optional in UI, maybe add hidden field or restore input
-      customer_phone: formData.get('customer-phone'),
-      event_date: state.date.toISOString().split('T')[0], // YYYY-MM-DD
+      customer_email: 'no-email@provided.com',
+      customer_phone: formData.get('customer-phone') || '',
+      event_date: dateStr,
       inflatable_type: state.inflatable,
       total_price: state.price,
-      status: 'pending' // Default status
+      status: 'pending'
     };
 
     try {
@@ -153,12 +188,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (error) throw error;
 
-      alert('✅ ¡Reserva Confirmada! Nos pondremos en contacto contigo.');
-      window.location.href = 'index.html';
+      // SUCCESS!
+      showModal('¡Reserva Confirmada!', 'Nos pondremos en contacto contigo pronto por WhatsApp para confirmar los detalles.', true);
+
+      // Reset form after success logic if needed
+      // window.location.href = 'index.html'; // Or keep them on page
 
     } catch (err) {
       console.error("Booking error:", err);
-      alert('❌ Error al guardar reserva. Inténtalo de nuevo.');
+      showModal('Error', `Hubo un problema al guardar tu reserva: ${err.message}. Inténtalo de nuevo.`, false);
+
       submitBtn.disabled = false;
       submitBtn.textContent = '✅ Confirmar Reserva';
     }

@@ -6,10 +6,9 @@ const CONFIG = {
     : 'https://party-rentals-api.netlify.app/api',
 
   // Cambiar por tus credenciales de Supabase
-  // En local, se leen de window.ENV (src/js/env.js)
-  // En producción, asegúrate de configurar las variables de entorno o inyectarlas
-  SUPABASE_URL: (window.ENV && window.ENV.SUPABASE_URL) || 'PLACEHOLDER_URL',
-  SUPABASE_ANON_KEY: (window.ENV && window.ENV.SUPABASE_ANON_KEY) || 'PLACEHOLDER_KEY',
+  // NOTA: La 'ANON_KEY' es pública y segura de exponer en el frontend si tienes RLS configurado.
+  SUPABASE_URL: (window.ENV && window.ENV.SUPABASE_URL) || 'https://cstixfdstuaagfosnepn.supabase.co',
+  SUPABASE_ANON_KEY: (window.ENV && window.ENV.SUPABASE_ANON_KEY) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzdGl4ZmRzdHVhYWdmb3NuZXBuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyMTAwMTksImV4cCI6MjA3NTc4NjAxOX0.3ZUvkvFUhFGzIno_-SmJx_C9t8q2idFI54jGh8U3R-E',
 
   // Configuración de la aplicación
   APP_NAME: 'Pequefest.com',
