@@ -180,19 +180,50 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  /* Full width wrapper */
 }
 
 #datePicker {
   display: none;
-  /* Hide input since we are inline */
 }
 
+/* Force Flatpickr to be Fluid */
 .flatpickr-calendar {
+  width: 100% !important;
+  max-width: 100% !important;
   box-shadow: var(--shadow-md) !important;
   border: 1px solid #eee !important;
   border-radius: var(--radius-lg) !important;
   margin-top: var(--space-2) !important;
   font-family: 'Inter', sans-serif !important;
+  padding: var(--space-4) !important;
+  /* Add padding inside */
+}
+
+.flatpickr-days {
+  width: 100% !important;
+  border: none !important;
+}
+
+.dayContainer {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  justify-content: space-around !important;
+  /* Distribute days */
+}
+
+.flatpickr-day {
+  max-width: none !important;
+  /* Allow days to grow */
+  height: 45px !important;
+  /* Taller touch targets */
+  line-height: 45px !important;
+  flex-basis: 13.5% !important;
+  /* 7 days ~ 14% each */
+  border-radius: var(--radius-md) !important;
+  margin: 2px 0 !important;
 }
 
 .flatpickr-day.selected {
@@ -201,7 +232,10 @@
 }
 
 .calendar-legend {
-  width: 260px;
-  /* Aligns with calendar width */
+  width: 100%;
+  /* Full width legend */
+  display: flex;
+  justify-content: center;
+  gap: var(--space-4);
   margin-top: var(--space-4);
 }
