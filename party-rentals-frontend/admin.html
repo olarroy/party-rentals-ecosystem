@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="src/css/main.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <style>
         .admin-login-overlay {
             position: fixed;
@@ -66,6 +67,15 @@
             height: 400px;
         }
 
+        .calendar-container {
+            background: white;
+            padding: var(--space-6);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--space-8);
+            min-height: 600px;
+        }
+
         .bookings-table {
             width: 100%;
             border-collapse: collapse;
@@ -98,8 +108,13 @@
             <h2 style="text-align: center;">Admin Access</h2>
             <form id="loginForm" style="display: flex; flex-direction: column; gap: var(--space-4);">
                 <div class="form-group">
-                    <input type="password" id="adminPassword" class="form-input"
-                        placeholder="Contraseña de administrador" autocomplete="username"
+                    <input type="email" id="adminEmail" class="form-input" placeholder="Email de administrador"
+                        autocomplete="username" value="admin@pequefest.com"
+                        style="width: 100%; padding: var(--space-3); border-radius: var(--radius-md); border: 2px solid #ddd; background: white; color: black; font-size: 16px; pointer-events: auto; z-index: 1002; position: relative;">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="adminPassword" class="form-input" placeholder="Contraseña"
+                        autocomplete="current-password"
                         style="width: 100%; padding: var(--space-3); border-radius: var(--radius-md); border: 2px solid #ddd; background: white; color: black; font-size: 16px; pointer-events: auto; z-index: 1002; position: relative;">
                 </div>
                 <button type="submit" class="btn btn-primary"
@@ -133,6 +148,11 @@
                 <div class="stat-value" id="nextBooking">--</div>
                 <div class="stat-label">Próxima Reserva</div>
             </div>
+        </div>
+
+        <!-- Calendar -->
+        <div class="calendar-container">
+            <div id='calendar'></div>
         </div>
 
         <!-- Charts -->

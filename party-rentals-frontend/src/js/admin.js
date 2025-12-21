@@ -1,8 +1,8 @@
-
 // DOM Elements
 const loginOverlay = document.getElementById('loginOverlay');
 const dashboardContent = document.getElementById('dashboardContent');
 const loginForm = document.getElementById('loginForm');
+const adminEmailInput = document.getElementById('adminEmail');
 const adminPasswordInput = document.getElementById('adminPassword');
 const logoutBtn = document.getElementById('logoutBtn');
 
@@ -11,7 +11,6 @@ let supabase;
 try {
     console.log('Admin JS starting...');
     if (!window.CONFIG) throw new Error('CONFIG not loaded');
-    console.log('Config loaded:', window.CONFIG.SUPABASE_URL);
 
     // Init Supabase
     supabase = window.supabase.createClient(window.CONFIG.SUPABASE_URL, window.CONFIG.SUPABASE_ANON_KEY);
@@ -21,42 +20,50 @@ try {
     alert('Error de inicialización: ' + e.message);
 }
 
-// Simple Auth
-const checkAuth = () => {
-    console.log('Checking auth...');
-    const isAuth = localStorage.getItem('adminAuth');
-    console.log('Auth status:', isAuth);
-
-    if (isAuth === 'true') {
+// Auth State Listener
+supabase.auth.onAuthStateChange((event, session) => {
+    console.log('Auth State Change:', event, session);
+    if (session) {
+        // User signed in
         loginOverlay.style.display = 'none';
         dashboardContent.style.display = 'block';
         loadDashboardData();
     } else {
+        // User signed out
         loginOverlay.style.display = 'flex';
         dashboardContent.style.display = 'none';
     }
-};
+});
 
-loginForm.addEventListener('submit', (e) => {
+// Login Handler
+loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const email = adminEmailInput.value;
     const password = adminPasswordInput.value;
-    console.log('Login attempt with:', password);
 
-    // Hardcoded password for demo purposes (MVP)
-    if (password === 'admin123') {
-        console.log('Password correct');
-        localStorage.setItem('adminAuth', 'true');
-        checkAuth();
-    } else {
-        console.warn('Password incorrect');
-        alert('Contraseña incorrecta');
+    console.log('Attempting login for:', email);
+
+    try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+        if (error) throw error;
+
+        console.log('Login successful:', data);
+
+    } catch (err) {
+        console.error('Login error:', err);
+        alert('Error al entrar: ' + err.message);
     }
 });
 
-logoutBtn.addEventListener('click', () => {
+// Logout Handler
+logoutBtn.addEventListener('click', async () => {
     console.log('Logging out');
-    localStorage.removeItem('adminAuth');
-    checkAuth();
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error('Logout error:', error);
 });
 
 // Data Loading
@@ -75,6 +82,7 @@ async function loadDashboardData() {
         if (error) throw error;
 
         updateKPIs(rentals);
+        renderCalendar(rentals);
         renderChart(rentals);
         renderTable(rentals);
 
@@ -82,6 +90,43 @@ async function loadDashboardData() {
         console.error('Error loading data:', err);
         alert('Error cargando datos del dashboard');
     }
+}
+
+function renderCalendar(rentals) {
+    const calendarEl = document.getElementById('calendar');
+
+    // Transform rentals to events
+    const events = rentals.map(r => ({
+        title: `${r.customers?.name || 'Cliente'} - ${r.inflatables?.name || 'Inflable'}`,
+        start: r.rental_date,
+        allDay: true,
+        color: r.status === 'confirmed' ? 'var(--success-color)' : 'var(--warning-color)',
+        extendedProps: {
+            price: r.total_price,
+            status: r.status
+        }
+    }));
+
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'es',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek'
+        },
+        buttonText: {
+            today: 'Hoy',
+            month: 'Mes',
+            week: 'Semana'
+        },
+        events: events,
+        eventClick: function (info) {
+            alert(`Reserva: ${info.event.title}\nEstado: ${info.event.extendedProps.status}\nPrecio: €${info.event.extendedProps.price}`);
+        }
+    });
+
+    calendar.render();
 }
 
 function updateKPIs(rentals) {
