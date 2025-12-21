@@ -1,7 +1,4 @@
 
-// Import config is handled by type="module" in HTML, but to ensure we get the global config check:
-// We rely on window.CONFIG being populated by src/js/config.js
-
 document.addEventListener('DOMContentLoaded', async () => {
 
   // --- 0. Init Supabase ---
@@ -11,15 +8,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
 
   if (!supabase) {
-    console.error("Supabase client not initialized. Check CDN and keys.");
+    console.error("Supabase client not initialized.");
   }
 
   // --- 1. State ---
   const state = {
-    inflatable: 'LARGE',
+    inflatable: 'LARGE', // 'LARGE', 'SMALL', 'PACK'
     price: 80,
     date: null,
-    bookedDates: []
+    allBookings: [] // Array of { date: 'YYYY-MM-DD', type: 'LARGE' }
   };
 
   // --- 2. Element Refs ---
@@ -39,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // --- 3. Helper Functions ---
   function showModal(title, message, isSuccess = true) {
     if (!modal) {
-      alert(message); // Fallback
+      alert(message);
       return;
     }
 
@@ -47,7 +44,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     modalMessage.textContent = message;
     modalIcon.textContent = isSuccess ? '🎉' : '⚠️';
 
-    // Update button style based on type
     if (isSuccess) {
       modalCloseBtn.textContent = '¡Genial!';
       modalCloseBtn.style.backgroundColor = 'var(--accent-color)';
@@ -63,31 +59,67 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (modal) modal.classList.add('hidden');
   }
 
-  // Close Modal Event
-  if (modalCloseBtn) {
-    modalCloseBtn.addEventListener('click', hideModal);
+  if (modalCloseBtn) modalCloseBtn.addEventListener('click', hideModal);
+  if (modal) modal.addEventListener('click', (e) => {
+    if (e.target === modal) hideModal();
+  });
+
+  // --- 4. Logic Functions ---
+
+  function getPriceForType(type) {
+    switch (type) {
+      case 'LARGE': return 80;
+      case 'SMALL': return 60;
+      case 'PACK': return 130;
+      default: return 80;
+    }
   }
-  // Close on overlay click
-  if (modal) {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) hideModal();
+
+  // IMPORTANT: Smart Availability Logic
+  function getBlockedDatesForCurrentType() {
+    const currentType = state.inflatable;
+
+    // Filter bookings that conflict with current selection
+    const conflictingBookings = state.allBookings.filter(b => {
+      const bookedType = b.inflatable_type;
+
+      if (currentType === 'PACK') {
+        // If I want the PACK, I need BOTH to be free.
+        // So ANY booking blocks me.
+        return true;
+      }
+
+      if (currentType === 'LARGE') {
+        // Large blocked by 'LARGE' or 'PACK' (since PACK includes Large)
+        return bookedType === 'LARGE' || bookedType === 'PACK';
+      }
+
+      if (currentType === 'SMALL') {
+        // Small blocked by 'SMALL' or 'PACK'
+        return bookedType === 'SMALL' || bookedType === 'PACK';
+      }
+
+      return false;
     });
+
+    return conflictingBookings.map(b => b.event_date);
   }
 
 
-  // --- 4. Async Fetch Availability ---
-  async function fetchBookedDates() {
+  // --- 5. Async Fetch ---
+  async function fetchAllBookings() {
     if (!supabase) return [];
 
     try {
+      // Fetch date AND type
       const { data, error } = await supabase
         .from('bookings')
-        .select('event_date')
+        .select('event_date, inflatable_type')
         .neq('status', 'cancelled');
 
       if (error) throw error;
 
-      return data.map(b => b.event_date);
+      return data;
 
     } catch (err) {
       console.error('Error fetching bookings:', err);
@@ -95,19 +127,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // --- 5. Logic & UI ---
+  // --- 6. Init ---
 
   // Load Data
-  state.bookedDates = await fetchBookedDates();
-  console.log("Fechas ocupadas:", state.bookedDates);
+  state.allBookings = await fetchAllBookings();
+  console.log("Todas las reservas:", state.allBookings);
 
-  // Flatpickr Init
-  flatpickr("#datePicker", {
+  const initialBlockedDates = getBlockedDatesForCurrentType();
+
+  // Flatpickr
+  const calendar = flatpickr("#datePicker", {
     inline: true,
     locale: "es",
     minDate: "today",
     dateFormat: "Y-m-d",
-    disable: state.bookedDates,
+    disable: initialBlockedDates,
     onChange: (selectedDates, dateStr) => {
       state.date = selectedDates[0];
       updatePriceWithDate(state.date);
@@ -115,15 +149,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Inflatable logic
+  // Inflatable Radio Logic
   radios.forEach(radio => {
     radio.addEventListener('change', (e) => {
       state.inflatable = e.target.value;
-      // Update Price Logic
-      state.price = state.inflatable === 'LARGE' ? 80 : 60;
 
-      // Check weekend increment if date is selected
+      // 1. Update Price Base
+      state.price = getPriceForType(state.inflatable);
+
+      // 2. Check weekend increment
       if (state.date) updatePriceWithDate(state.date);
+
+      // 3. REFRESH CALENDAR AVAILABILITY
+      // This fixes the bug!
+      const newBlockedDates = getBlockedDatesForCurrentType();
+      calendar.set('disable', newBlockedDates);
+
+      // Check if currently selected date is now blocked
+      if (state.date) {
+        const dateStr = state.date.toISOString().split('T')[0];
+        if (newBlockedDates.includes(dateStr)) {
+          // Oops, selected date is taken for this new item
+          calendar.clear();
+          state.date = null;
+          showModal('Fecha no disponible', 'La fecha que tenías seleccionada está ocupada para este hinchable. Por favor, elige otra.', false);
+        }
+      }
 
       updateUI();
     });
@@ -131,13 +182,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function updatePriceWithDate(date) {
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-    let base = state.inflatable === 'LARGE' ? 80 : 60;
-    if (isWeekend) base += 20;
+    let base = getPriceForType(state.inflatable);
+
+    if (isWeekend) {
+      // Add 20% or fixed amount? 
+      // Previous logic was exact +20. Let's keep it simple.
+      // Maybe +20 for single, +30 for pack? 
+      // Let's do +20% roughly. 
+      // Large(80)->100(+20), Small(60)->80(+20). Pack(130)->160(+30)?
+      if (state.inflatable === 'PACK') base += 30;
+      else base += 20;
+    }
     state.price = base;
   }
 
   function updateUI() {
-    summaryInfl.textContent = state.inflatable === 'LARGE' ? 'Castillo Grande' : 'Castillo Pequeño';
+    if (state.inflatable === 'LARGE') summaryInfl.textContent = 'Castillo Grande';
+    else if (state.inflatable === 'SMALL') summaryInfl.textContent = 'Castillo Pequeño';
+    else summaryInfl.textContent = 'Pack Completo (2)';
+
     summaryPrice.textContent = `€${state.price}`;
 
     if (state.date) {
@@ -147,12 +210,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // --- 6. Form Submission ---
+  // --- 7. Submit ---
   bookingForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     if (!state.date) {
-      showModal('¡Ups!', 'Por favor, selecciona una fecha en el calendario antes de continuar.', false);
+      showModal('¡Ups!', 'Por favor, selecciona una fecha.', false);
       return;
     }
 
@@ -162,7 +225,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const formData = new FormData(bookingForm);
 
-    // Ensure date is in YYYY-MM-DD local format
     const year = state.date.getFullYear();
     const month = String(state.date.getMonth() + 1).padStart(2, '0');
     const day = String(state.date.getDate()).padStart(2, '0');
@@ -188,21 +250,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (error) throw error;
 
-      // SUCCESS!
-      showModal('¡Reserva Confirmada!', 'Nos pondremos en contacto contigo pronto por WhatsApp para confirmar los detalles.', true);
-
-      // Reset form after success logic if needed
-      // window.location.href = 'index.html'; // Or keep them on page
+      showModal('¡Reserva Confirmada!', 'Nos pondremos en contacto contigo pronto por WhatsApp.', true);
 
     } catch (err) {
       console.error("Booking error:", err);
-      showModal('Error', `Hubo un problema al guardar tu reserva: ${err.message}. Inténtalo de nuevo.`, false);
-
+      showModal('Error', `Error al guardar: ${err.message}`, false);
       submitBtn.disabled = false;
       submitBtn.textContent = '✅ Confirmar Reserva';
     }
   });
 
-  // Init UI
   updateUI();
 });
