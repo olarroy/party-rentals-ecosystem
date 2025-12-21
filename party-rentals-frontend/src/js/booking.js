@@ -10,7 +10,7 @@ class BookingSystem {
     this.selectedInflatable = 'large';
     this.availabilityData = new Map();
     this.isLoading = false;
-    
+
     // Precios base
     this.pricing = {
       large: {
@@ -24,13 +24,13 @@ class BookingSystem {
         holiday: 160
       }
     };
-    
+
     // Días festivos (ejemplo)
     this.holidays = new Set([
       '2025-01-01', '2025-04-18', '2025-05-01', '2025-07-20',
       '2025-08-07', '2025-10-12', '2025-11-01', '2025-12-08', '2025-12-25'
     ]);
-    
+
     this.init();
   }
 
@@ -77,13 +77,13 @@ class BookingSystem {
 
   selectInflatable(type) {
     this.selectedInflatable = type;
-    
+
     // Actualizar botones
     document.querySelectorAll('.inflatable-btn').forEach(btn => {
       btn.classList.remove('active');
     });
     document.querySelector(`[data-inflatable="${type}"]`).classList.add('active');
-    
+
     // Recargar disponibilidad y precios
     this.loadAvailabilityData();
     this.updatePricing();
@@ -93,7 +93,7 @@ class BookingSystem {
   renderCalendar() {
     const grid = document.getElementById('calendar-grid');
     const monthYear = document.getElementById('month-year');
-    
+
     if (!grid || !monthYear) return;
 
     // Actualizar título
@@ -106,7 +106,7 @@ class BookingSystem {
     // Limpiar grid
     const dayHeaders = grid.querySelectorAll('.day-header');
     grid.innerHTML = '';
-    
+
     // Restaurar headers
     dayHeaders.forEach(header => grid.appendChild(header));
 
@@ -119,11 +119,11 @@ class BookingSystem {
     // Generar celdas
     const today = new Date();
     const currentMonth = this.currentDate.getMonth();
-    
+
     for (let i = 0; i < 42; i++) {
       const cellDate = new Date(startDate);
       cellDate.setDate(startDate.getDate() + i);
-      
+
       const cell = this.createDayCell(cellDate, currentMonth, today);
       grid.appendChild(cell);
     }
@@ -132,14 +132,14 @@ class BookingSystem {
   createDayCell(date, currentMonth, today) {
     const cell = document.createElement('div');
     cell.className = 'day-cell';
-    
+
     const dayNumber = document.createElement('div');
     dayNumber.className = 'day-number';
     dayNumber.textContent = date.getDate();
-    
+
     const indicator = document.createElement('div');
     indicator.className = 'availability-indicator';
-    
+
     cell.appendChild(dayNumber);
     cell.appendChild(indicator);
 
@@ -147,15 +147,15 @@ class BookingSystem {
     if (date.getMonth() !== currentMonth) {
       cell.classList.add('other-month');
     }
-    
+
     if (this.isSameDay(date, today)) {
       cell.classList.add('today');
     }
-    
+
     if (this.selectedDate && this.isSameDay(date, this.selectedDate)) {
       cell.classList.add('selected');
     }
-    
+
     if (date < today && !this.isSameDay(date, today)) {
       cell.classList.add('unavailable');
     } else {
@@ -164,14 +164,14 @@ class BookingSystem {
 
     // Indicador de disponibilidad
     this.updateAvailabilityIndicator(cell, date, indicator);
-    
+
     return cell;
   }
 
   updateAvailabilityIndicator(cell, date, indicator) {
     const dateStr = this.formatDate(date);
     const availability = this.availabilityData.get(dateStr);
-    
+
     if (!availability) {
       // Mostrar dot por defecto (disponible)
       const dot = document.createElement('div');
@@ -185,13 +185,13 @@ class BookingSystem {
     inflatables.forEach(type => {
       const dot = document.createElement('div');
       dot.className = 'availability-dot';
-      
+
       if (availability[type] === 'busy') {
         dot.classList.add('busy');
       } else if (availability[type] === 'partial') {
         dot.classList.add('partial');
       }
-      
+
       indicator.appendChild(dot);
     });
   }
@@ -218,11 +218,11 @@ class BookingSystem {
     }
 
     container.style.display = 'block';
-    
+
     const dateStr = this.formatDateSpanish(this.selectedDate);
     const dayType = this.getDayType(this.selectedDate);
     const availability = this.getAvailabilityStatus(this.selectedDate);
-    
+
     container.innerHTML = `
       <h3>Fecha Seleccionada</h3>
       <div class="date-details">
@@ -247,18 +247,18 @@ class BookingSystem {
   updatePricing() {
     const container = document.getElementById('pricing-info');
     if (!container || !this.selectedDate) {
-      container?.style.display = 'none';
+      if (container) container.style.display = 'none';
       return;
     }
 
     container.style.display = 'block';
-    
+
     const dayType = this.getDayType(this.selectedDate);
     const basePrice = this.pricing[this.selectedInflatable][dayType];
     const setupFee = 25;
     const cleaningFee = 15;
     const total = basePrice + setupFee + cleaningFee;
-    
+
     container.innerHTML = `
       <h3>Resumen de Precios</h3>
       <div class="pricing-breakdown">
@@ -285,27 +285,27 @@ class BookingSystem {
   async loadAvailabilityData() {
     this.isLoading = true;
     this.showLoading();
-    
+
     try {
       // Simular llamada a API
       await this.delay(500);
-      
+
       // Generar datos de disponibilidad simulados
       const startDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1);
       const endDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0);
-      
+
       for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
         const dateStr = this.formatDate(d);
-        
+
         // Simular disponibilidad aleatoria
         const availability = {
           large: Math.random() > 0.3 ? 'available' : 'busy',
           small: Math.random() > 0.2 ? 'available' : 'busy'
         };
-        
+
         this.availabilityData.set(dateStr, availability);
       }
-      
+
       this.renderCalendar();
     } catch (error) {
       console.error('Error loading availability:', error);
@@ -317,13 +317,13 @@ class BookingSystem {
 
   async handleBookingSubmit(event) {
     event.preventDefault();
-    
+
     if (!this.validateForm()) {
       return;
     }
-    
+
     this.showLoading();
-    
+
     try {
       const formData = new FormData(event.target);
       const bookingData = {
@@ -343,18 +343,18 @@ class BookingSystem {
         },
         pricing: this.calculateTotalPrice()
       };
-      
+
       // Simular envío a API
       await this.delay(1000);
       const result = await this.submitBooking(bookingData);
-      
+
       if (result.success) {
         this.showSuccessMessage(result.bookingId);
         this.resetForm();
       } else {
         throw new Error(result.message);
       }
-      
+
     } catch (error) {
       console.error('Booking error:', error);
       this.showError('Error al procesar la reserva. Por favor intente nuevamente.');
@@ -378,12 +378,12 @@ class BookingSystem {
 
   validateForm() {
     let isValid = true;
-    
+
     if (!this.selectedDate) {
       this.showError('Por favor seleccione una fecha');
       return false;
     }
-    
+
     const requiredFields = [
       'customer-name',
       'customer-email',
@@ -393,14 +393,14 @@ class BookingSystem {
       'guest-count',
       'rental-hours'
     ];
-    
+
     requiredFields.forEach(fieldName => {
       const field = document.querySelector(`[name="${fieldName}"]`);
       if (!this.validateField(field)) {
         isValid = false;
       }
     });
-    
+
     return isValid;
   }
 
@@ -408,10 +408,10 @@ class BookingSystem {
     const value = field.value.trim();
     let isValid = true;
     let message = '';
-    
+
     // Limpiar errores previos
     this.clearFieldError(field);
-    
+
     // Validar campo requerido
     if (!value) {
       isValid = false;
@@ -426,7 +426,7 @@ class BookingSystem {
             message = 'Ingrese un email válido';
           }
           break;
-          
+
         case 'customer-phone':
           const phoneRegex = /^[\+]?[\d\s\-\(\)]{10,}$/;
           if (!phoneRegex.test(value)) {
@@ -434,7 +434,7 @@ class BookingSystem {
             message = 'Ingrese un teléfono válido';
           }
           break;
-          
+
         case 'guest-count':
           const guests = parseInt(value);
           if (guests < 1 || guests > 200) {
@@ -442,7 +442,7 @@ class BookingSystem {
             message = 'Número de invitados debe estar entre 1 y 200';
           }
           break;
-          
+
         case 'rental-hours':
           const hours = parseInt(value);
           if (hours < 4 || hours > 12) {
@@ -452,26 +452,26 @@ class BookingSystem {
           break;
       }
     }
-    
+
     if (!isValid) {
       this.showFieldError(field, message);
     } else {
       field.classList.add('success');
     }
-    
+
     return isValid;
   }
 
   showFieldError(field, message) {
     field.classList.add('error');
-    
+
     let errorElement = field.parentNode.querySelector('.form-error');
     if (!errorElement) {
       errorElement = document.createElement('div');
       errorElement.className = 'form-error';
       field.parentNode.appendChild(errorElement);
     }
-    
+
     errorElement.textContent = message;
   }
 
@@ -500,12 +500,12 @@ class BookingSystem {
 
   calculateTotalPrice() {
     if (!this.selectedDate) return 0;
-    
+
     const dayType = this.getDayType(this.selectedDate);
     const basePrice = this.pricing[this.selectedInflatable][dayType];
     const setupFee = 25;
     const cleaningFee = 15;
-    
+
     return {
       base: basePrice,
       setup: setupFee,
@@ -525,35 +525,35 @@ class BookingSystem {
       'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
       'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
     ];
-    
+
     return `${days[date.getDay()]}, ${date.getDate()} de ${months[date.getMonth()]} de ${date.getFullYear()}`;
   }
 
   getDayType(date) {
     const dateStr = this.formatDate(date);
-    
+
     if (this.holidays.has(dateStr)) {
       return 'holiday';
     }
-    
+
     const dayOfWeek = date.getDay();
     if (dayOfWeek === 0 || dayOfWeek === 6) {
       return 'weekend';
     }
-    
+
     return 'weekday';
   }
 
   getAvailabilityStatus(date) {
     const dateStr = this.formatDate(date);
     const availability = this.availabilityData.get(dateStr);
-    
+
     if (!availability) {
       return { text: 'Disponible', color: '#51cf66' };
     }
-    
+
     const status = availability[this.selectedInflatable];
-    
+
     switch (status) {
       case 'available':
         return { text: 'Disponible', color: '#51cf66' };
@@ -585,7 +585,7 @@ class BookingSystem {
       <div class="spinner"></div>
       <span class="loading-text">Procesando...</span>
     `;
-    
+
     document.body.appendChild(loader);
   }
 

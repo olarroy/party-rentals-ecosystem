@@ -25,10 +25,19 @@ jobs:
     - name: Setup Pages
       uses: actions/configure-pages@v4
       
+    - name: Prepare deployment files
+      run: |
+        mkdir -p deploy
+        cp index.html deploy/
+        cp reservas.html deploy/
+        cp favicon.svg deploy/
+        cp -r components deploy/
+        cp -r src deploy/
+        
     - name: Upload to GitHub Pages
       uses: actions/upload-pages-artifact@v3
       with:
-        path: party-rentals-frontend
+        path: deploy
         
     - name: Deploy to GitHub Pages
       id: deployment

@@ -43,9 +43,9 @@ party-rentals-ecosystem/                     ✅ COMPLETADO
 │   ├── src/tools/                          ✅ Tools de sugerencias
 │   └── tests/                              ✅ Tests del MCP server
 │
-├── 🧠 mcp-orchestrator/                    ✅ Orquestador MCP
-│   ├── src/MCPOrchestrator.ts              ✅ Gestión de múltiples MCPs
-│   └── src/agents/                         ✅ Agentes especializados
+├── 🧠 mcp-orchestrator/                    ✅ Telegram Bot Interface
+│   ├── src/index.ts                        ✅ Bot Entry Point
+│   └── src/handlers/                       ✅ Query Interceptor & DB Bridge
 │
 ├── 📋 shared-contracts/                    ✅ Interfaces compartidas
 │   └── src/types/                          ✅ Tipos TypeScript compartidos

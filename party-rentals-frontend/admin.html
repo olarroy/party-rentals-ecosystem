@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Party Rentals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="src/css/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .admin-login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-body);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-dashboard {
+            display: none;
+            padding: var(--space-8) 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+
+        .stat-card {
+            background: white;
+            padding: var(--space-6);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-value {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: var(--font-size-sm);
+        }
+
+        .chart-container {
+            background: white;
+            padding: var(--space-6);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--space-8);
+            height: 400px;
+        }
+
+        .bookings-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .bookings-table th,
+        .bookings-table td {
+            padding: var(--space-4);
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .bookings-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Login Overlay -->
+    <div id="loginOverlay" class="admin-login-overlay">
+        <div
+            style="width: 100%; max-width: 400px; padding: var(--space-8); background: white; border-radius: var(--radius-xl); box-shadow: var(--shadow-2xl); position: relative; z-index: 1001;">
+            <h2 style="text-align: center;">Admin Access</h2>
+            <form id="loginForm" style="display: flex; flex-direction: column; gap: var(--space-4);">
+                <div class="form-group">
+                    <input type="password" id="adminPassword" class="form-input"
+                        placeholder="Contraseña de administrador" autocomplete="username"
+                        style="width: 100%; padding: var(--space-3); border-radius: var(--radius-md); border: 2px solid #ddd; background: white; color: black; font-size: 16px; pointer-events: auto; z-index: 1002; position: relative;">
+                </div>
+                <button type="submit" class="btn btn-primary"
+                    style="width: 100%; cursor: pointer; position: relative; z-index: 1002;">Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div id="dashboardContent" class="admin-dashboard container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-8);">
+            <h1>Dashboard</h1>
+            <button id="logoutBtn" class="btn btn-secondary">Cerrar Sesión</button>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalRevenue">€0</div>
+                <div class="stat-label">Ingresos Totales (Mes)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalBookings">0</div>
+                <div class="stat-label">Reservas (Mes)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgTicket">€0</div>
+                <div class="stat-label">Ticket Medio</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="nextBooking">--</div>
+                <div class="stat-label">Próxima Reserva</div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="chart-container">
+            <canvas id="revenueChart"></canvas>
+        </div>
+
+        <!-- Recent Bookings Table -->
+        <h2>Últimas Reservas</h2>
+        <div style="overflow-x: auto;">
+            <table class="bookings-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Inflable</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="bookingsTableBody">
+                    <!-- Loaded dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module" src="src/js/config.js"></script>
+    <script type="module" src="src/js/admin.js"></script>
+</body>
+
+</html>

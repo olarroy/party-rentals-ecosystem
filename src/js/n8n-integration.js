@@ -40,7 +40,7 @@ class N8NIntegration {
         headers: {
           'Content-Type': 'application/json',
           'X-Webhook-Secret': 'party-rentals-2025-secure',
-          'User-Agent': 'FiestaInflables-Website/1.0'
+          'User-Agent': 'Pequefest.com-Website/1.0'
         },
         body: JSON.stringify(payload)
       });

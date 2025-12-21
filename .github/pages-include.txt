@@ -1,0 +1,36 @@
+# GitHub Pages deployment configuration
+# This file specifies what to include in the deployment
+
+# Include these essential files for the website
+index.html
+reservas.html
+favicon.svg
+components/
+src/
+party-rentals-frontend/
+
+# Exclude development and backend files
+.env
+.env.example
+.git/
+mcp-orchestrator/
+party-rentals-api/
+party-rentals-core/
+party-rentals-mcp-server/
+shared-contracts/
+database-setup.sql
+*.md
+*.sh
+*.ps1
+*.json
+test-*
+setup-*
+n8n-*
+TWILIO_*
+WHATSAPP_*
+SOLUCION_*
+CONFIGURACION_*
+DEPLOYMENT*
+DEPLOY_*
+GUIA_*
+PROJECT_*

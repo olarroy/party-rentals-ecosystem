@@ -1,0 +1,30 @@
+{
+    "name": "mcp-orchestrator",
+    "version": "1.0.0",
+    "description": "Telegram Bot Interface for Party Rentals Ecosystem",
+    "main": "dist/index.js",
+    "type": "module",
+    "scripts": {
+        "dev": "tsx watch src/index.ts",
+        "build": "tsc",
+        "start": "node dist/index.js",
+        "clean": "rm -rf dist"
+    },
+    "dependencies": {
+        "@supabase/supabase-js": "^2.38.0",
+        "@types/express": "^5.0.6",
+        "date-fns": "^2.30.0",
+        "dotenv": "^16.3.1",
+        "express": "^5.2.1",
+        "telegraf": "^4.15.0",
+        "uuid": "^9.0.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.8.0",
+        "@types/uuid": "^9.0.0",
+        "tsx": "^3.14.0",
+        "typescript": "^5.2.0"
+    },
+    "author": "Oscar",
+    "license": "MIT"
+}

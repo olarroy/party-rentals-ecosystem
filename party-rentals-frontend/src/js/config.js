@@ -1,33 +1,33 @@
 // Configuración API endpoints
 const CONFIG = {
   // Cambiar por tu URL de Netlify cuando despliegues
-  API_BASE_URL: process.env.NODE_ENV === 'production' 
-    ? 'https://party-rentals-api.netlify.app/api'
-    : 'http://localhost:8888/api',
-    
+  API_BASE_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:8888/api'
+    : 'https://party-rentals-api.netlify.app/api',
+
   // Cambiar por tus credenciales de Supabase
-  SUPABASE_URL: 'https://your-project.supabase.co',
-  SUPABASE_ANON_KEY: 'your_supabase_anon_key',
-  
+  SUPABASE_URL: 'https://cstixfdstuaagfosnepn.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzdGl4ZmRzdHVhYWdmb3NuZXBuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyMTAwMTksImV4cCI6MjA3NTc4NjAxOX0.3ZUvkvFUhFGzIno_-SmJx_C9t8q2idFI54jGh8U3R-E',
+
   // Configuración de la aplicación
-  APP_NAME: 'FiestaInflables',
-  COMPANY_EMAIL: 'info@fiestainflables.com',
+  APP_NAME: 'Pequefest.com',
+  COMPANY_EMAIL: 'info@pequefest.com',
   COMPANY_PHONE: '+34 123 456 789',
-  
+
   // Precios base (se obtienen de la API, estos son fallback)
   PRICES: {
     LARGE: 80,
     SMALL: 60,
     WEEKEND_PREMIUM: 0.20 // 20%
   },
-  
+
   // Configuración del calendario
   CALENDAR: {
     MONTHS_TO_SHOW: 3,
     MIN_ADVANCE_DAYS: 1,
     MAX_ADVANCE_DAYS: 365
   },
-  
+
   // Mensajes de la aplicación
   MESSAGES: {
     BOOKING_SUCCESS: '¡Reserva confirmada! Te enviaremos un email con los detalles.',
