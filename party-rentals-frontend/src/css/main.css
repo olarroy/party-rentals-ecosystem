@@ -337,11 +337,10 @@ p {
 }
 
 /* Card Styles - Bluey Redesign */
+/* Card Styles - Header Card Design */
 .service-card {
   background: white;
   border-radius: var(--radius-xl);
-  border: 4px solid var(--secondary-light);
-  /* Thick pastel border */
   box-shadow: var(--shadow-md);
   transition: var(--trans-bounce);
   overflow: hidden;
@@ -349,32 +348,36 @@ p {
   display: flex;
   flex-direction: column;
   height: 100%;
+  border: none;
+  /* Clean borderless look, let header define shape */
 }
 
 .service-card:hover {
   transform: translateY(-8px);
-  border-color: var(--secondary-color);
-  box-shadow: 0 12px 0 rgba(55, 89, 120, 0.15);
-  /* Deep solid shadow */
+  box-shadow: var(--shadow-float);
 }
 
-.service-card.featured {
-  border-color: var(--accent-color);
-  box-shadow: 0 8px 0 rgba(237, 140, 86, 0.2);
-}
-
-.service-card.featured:hover {
-  box-shadow: 0 12px 0 rgba(237, 140, 86, 0.3);
-}
-
-.service-image {
-  background: var(--bg-body);
+/* Header Section of Card */
+.service-icon {
+  background: var(--secondary-light);
+  /* Bluey Blue Header */
   padding: var(--space-8);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 5rem;
-  border-bottom: 2px dashed var(--secondary-light);
+  position: relative;
+}
+
+/* Featured Card (Large) gets accented header */
+.service-card.featured .service-icon {
+  background: var(--accent-color);
+  /* Bingo Orange Header */
+}
+
+.service-card.featured .card-tag {
+  background: white;
+  color: var(--accent-color);
 }
 
 .service-content {
@@ -383,18 +386,18 @@ p {
   flex-direction: column;
   flex-grow: 1;
   text-align: center;
-  /* Center align for playful look */
 }
 
 .service-content h3 {
   color: var(--primary-color);
+  font-size: var(--font-size-2xl);
   margin-bottom: var(--space-2);
 }
 
 .service-desc {
   flex-grow: 1;
-  /* Pushes price/button down */
   margin-bottom: var(--space-4);
+  font-size: var(--font-size-lg);
 }
 
 .specs-grid {
@@ -407,7 +410,7 @@ p {
 .spec {
   font-size: var(--font-size-sm);
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--primary-color);
   background: var(--bg-body);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
@@ -420,7 +423,7 @@ p {
 }
 
 .price {
-  font-size: 2rem;
+  font-size: 2.5rem;
 }
 
 .period {
@@ -432,7 +435,7 @@ p {
   position: absolute;
   top: var(--space-4);
   right: var(--space-4);
-  background: var(--accent-color);
+  background: var(--primary-color);
   color: white;
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-full);
@@ -441,17 +444,6 @@ p {
   text-transform: uppercase;
   box-shadow: var(--shadow-sm);
   z-index: 2;
-}
-
-.feature-tag {
-  background: var(--bg-body);
-  color: var(--text-muted);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 /* Footer */
