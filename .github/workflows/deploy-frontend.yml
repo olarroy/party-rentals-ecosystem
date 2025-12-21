@@ -28,11 +28,12 @@ jobs:
     - name: Prepare deployment files
       run: |
         mkdir -p deploy
-        cp index.html deploy/
-        cp reservas.html deploy/
-        cp favicon.svg deploy/
-        cp -r components deploy/
-        cp -r src deploy/
+        cp party-rentals-frontend/index.html deploy/
+        cp party-rentals-frontend/reservas.html deploy/
+        cp party-rentals-frontend/admin.html deploy/
+        cp party-rentals-frontend/favicon.svg deploy/
+        cp -r party-rentals-frontend/components deploy/
+        cp -r party-rentals-frontend/src deploy/
         
     - name: Upload to GitHub Pages
       uses: actions/upload-pages-artifact@v3
